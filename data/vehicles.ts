@@ -1,10 +1,6 @@
 
 import type { Vehicle } from '../types';
 
-const generate360Images = (seed: string, count: number): string[] => {
-    return Array.from({ length: count }, (_, i) => `https://picsum.photos/seed/${seed}${i + 1}/800/600`);
-};
-
 const imageHost = "https://images.unsplash.com/photo-";
 const imageParams = "?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=800&fit=max";
 
@@ -12,8 +8,8 @@ export const vehiclesData: Vehicle[] = [
     { 
         id: 1, 
         model: "Sedan Business", 
-        brand: "Audi", // Am adăugat brand
-        sku: "FLP-SED-A4-01", // Am adăugat SKU
+        brand: "Audi",
+        sku: "FLP-SED-A4-01",
         type: "Sedan", 
         tags: ["Nou 2024"], 
         perks: ["RCA + CASCO", "Mentenanță", "Mașină de înlocuire"], 
@@ -23,7 +19,10 @@ export const vehiclesData: Vehicle[] = [
         transmission: "Automată", 
         engine: "2.0 Diesel", 
         consumption: "5.2 L/100km",
-        view360: { exterior: generate360Images('sedanext', 24), interior: generate360Images('sedanint', 12) },
+        view360: { 
+            exterior: 'https://picsum.photos/seed/sedanext_pano/2048/1024', 
+            interior: 'https://picsum.photos/seed/sedanint_pano/2048/1024' 
+        },
         fuelType: 'Diesel',
         power: 190,
         features: ['Scaune piele', 'Navigație', 'Pilot automat adaptiv', 'Trapă'],
@@ -48,7 +47,10 @@ export const vehiclesData: Vehicle[] = [
         transmission: "Automată", 
         engine: "2.5 Hibrid", 
         consumption: "6.5 L/100km",
-        view360: { exterior: generate360Images('suvext', 24), interior: generate360Images('suvint', 12) },
+        view360: { 
+            exterior: 'https://picsum.photos/seed/suvext_pano/2048/1024', 
+            interior: 'https://picsum.photos/seed/suvint_pano/2048/1024' 
+        },
         fuelType: 'Hibrid',
         power: 220,
         features: ['Scaune piele', 'Navigație', 'Pilot automat adaptiv', 'Trapă', 'Sistem audio premium'],
@@ -71,6 +73,10 @@ export const vehiclesData: Vehicle[] = [
         transmission: "Automată", 
         engine: "Motor electric 150kW", 
         consumption: "15 kWh/100km",
+        view360: { 
+            exterior: 'https://picsum.photos/seed/elecext_pano/2048/1024', 
+            interior: 'https://picsum.photos/seed/elecint_pano/2048/1024' 
+        },
         fuelType: 'Electrică',
         power: 204,
         features: ['Navigație', 'Pilot automat adaptiv', 'Pompă de căldură'],

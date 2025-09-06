@@ -3,7 +3,6 @@ import React from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import type { Testimonial, Vehicle } from '../types';
 import { CarIcon, ClockIcon, ShieldCheckIcon, StarIcon, CheckCircleIcon, EuroIcon, WrenchIcon, PiggyBankIcon } from '../components/icons';
-import { vehiclesData as allVehicles } from '../data/vehicles';
 import Image from '../components/Image';
 import VehicleCard from '../components/VehicleCard';
 import { adminDataService } from '../utils/adminDataService';
@@ -52,11 +51,13 @@ const servicesData = [
     },
 ];
 
-const vehiclesForHomepage = allVehicles.slice(0, 3);
-
 const HomePage: React.FC = () => {
     const [activeFilter, setActiveFilter] = React.useState('Toate');
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
+
+    // Încarcă datele dinamice din serviciu
+    const allVehicles = adminDataService.getVehicles();
+    const vehiclesForHomepage = allVehicles.slice(0, 3);
 
     // Încarcă conținutul editabil din serviciul de date
     const heroTitle = adminDataService.getSingleContent('home-hero-title', 'Închirieri auto pe termen lung pentru companii');

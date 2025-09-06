@@ -1,134 +1,76 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from './Image';
+import React, { useEffect, useRef } from 'react';
 
-interface Vehicle360ViewerProps {
-    frames: string[];
+// Extindem interfața Window pentru a informa TypeScript despre existența bibliotecii Pannellum,
+// care este încărcată global printr-un tag <script> în index.html.
+declare global {
+    interface Window {
+        pannellum: any;
+    }
 }
 
-const Vehicle360Viewer: React.FC<Vehicle360ViewerProps> = ({ frames }) => {
-    const [currentFrame, setCurrentFrame] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [loadedImages, setLoadedImages] = useState(0);
-    const dragStartXRef = useRef(0);
-    const containerRef = useRef<HTMLDivElement>(null);
+interface Vehicle360ViewerProps {
+    src: string;
+}
 
-    // Pre-încărcarea imaginilor pentru a asigura o tranziție fluidă
+/**
+ * Componenta de vizualizare 360° interactivă, utilizând biblioteca Pannellum.
+ * Aceasta încarcă o imagine panoramică (equirectangulară) și permite utilizatorului
+ * să navigheze liber în interiorul ei.
+ * @param {string} src - URL-ul către imaginea panoramică.
+ */
+const Vehicle360Viewer: React.FC<Vehicle360ViewerProps> = ({ src }) => {
+    // useRef este folosit pentru a obține o referință directă la elementul DOM
+    // în care va fi randat vizualizatorul Pannellum.
+    const viewerRef = useRef<HTMLDivElement>(null);
+
+    // useEffect gestionează ciclul de viață al vizualizatorului:
+    // - Inițializează Pannellum când componenta este montată sau când sursa (src) se schimbă.
+    // - Distruge instanța Pannellum la demontarea componentei pentru a elibera resursele.
     useEffect(() => {
-        setIsLoading(true);
-        setLoadedImages(0);
-        let loadedCount = 0;
-        
-        frames.forEach((src) => {
-            const img = new window.Image();
-            img.src = src;
-            img.onload = () => {
-                loadedCount++;
-                setLoadedImages(loadedCount);
-                if (loadedCount === frames.length) {
-                    setIsLoading(false);
-                }
-            };
+        // Verificăm dacă sursa imaginii și elementul container sunt disponibile.
+        if (!src || !viewerRef.current) {
+            return;
+        }
+
+        // Verificăm dacă biblioteca Pannellum a fost încărcată corect în `window`.
+        if (typeof window.pannellum === 'undefined') {
+            console.error("Biblioteca Pannellum nu este încărcată.");
+            return;
+        }
+
+        // Inițializăm vizualizatorul Pannellum cu opțiunile dorite.
+        // 'equirectangular' este tipul pentru imaginile panoramice 360°.
+        // 'autoLoad: true' încarcă automat imaginea.
+        const viewer = window.pannellum.viewer(viewerRef.current, {
+            type: 'equirectangular',
+            panorama: src,
+            autoLoad: true,
+            showControls: true, // Afișează butoanele de control (zoom, fullscreen)
+            compass: false, // Dezactivăm busola pentru o interfață mai curată
         });
-    }, [frames]);
-    
-    // Funcție pentru a calcula noul index al cadrului pe baza mișcării
-    const updateFrame = useCallback((currentX: number) => {
-        if (!containerRef.current) return;
-        
-        const sensitivity = 2; // O valoare mai mare înseamnă o rotație mai lentă
-        const dx = currentX - dragStartXRef.current;
-        const frameChange = Math.floor(dx / (containerRef.current.offsetWidth / (frames.length / sensitivity)));
 
-        if (frameChange !== 0) {
-            // Se calculează noul index, asigurând că rămâne în limite (0 to frames.length - 1)
-            let nextFrame = (currentFrame - frameChange + frames.length) % frames.length;
-            setCurrentFrame(nextFrame);
-            // Se resetează punctul de start pentru o mișcare continuă
-            dragStartXRef.current = currentX;
-        }
-    }, [currentFrame, frames.length]);
-
-    // Handlere pentru evenimentele de mouse
-    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        setIsDragging(true);
-        dragStartXRef.current = e.clientX;
-        e.preventDefault();
-    };
-
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (isDragging) {
-            updateFrame(e.clientX);
-        }
-    }, [isDragging, updateFrame]);
-
-    const handleMouseUp = useCallback(() => {
-        setIsDragging(false);
-    }, []);
-
-    // Handlere pentru evenimentele de touch
-    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-        setIsDragging(true);
-        dragStartXRef.current = e.touches[0].clientX;
-    };
-    
-    const handleTouchMove = useCallback((e: TouchEvent) => {
-        if (isDragging) {
-            updateFrame(e.touches[0].clientX);
-        }
-    }, [isDragging, updateFrame]);
-
-    const handleTouchEnd = useCallback(() => {
-        setIsDragging(false);
-    }, []);
-    
-    // Adăugarea și eliminarea event listener-ilor globali pentru mousemove și mouseup
-    useEffect(() => {
-        if (isDragging) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-            window.addEventListener('touchmove', handleTouchMove);
-            window.addEventListener('touchend', handleTouchEnd);
-        }
+        // Funcția de cleanup: Aceasta este esențială în React.
+        // Se execută la demontarea componentei (de ex. la închiderea modalului).
+        // `viewer.destroy()` eliberează memoria și resursele utilizate de Pannellum,
+        // prevenind memory leaks.
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-            window.removeEventListener('touchmove', handleTouchMove);
-            window.removeEventListener('touchend', handleTouchEnd);
+            viewer.destroy();
         };
-    }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+    }, [src]); // Dependența `src` asigură re-inițializarea vizualizatorului dacă se schimbă imaginea (ex: de la exterior la interior).
 
-    return (
-        <div 
-            ref={containerRef}
-            className="relative w-full h-full flex items-center justify-center touch-none select-none overflow-hidden cursor-grab active:cursor-grabbing"
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-        >
-            {isLoading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 z-20">
-                    <div className="text-muted dark:text-gray-400">Se încarcă vizualizarea 360°...</div>
-                    <div className="w-1/2 mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: `${(loadedImages / frames.length) * 100}%` }}></div>
-                    </div>
-                     <div className="text-xs mt-1 text-muted dark:text-gray-500">{loadedImages} / {frames.length}</div>
-                </div>
-            )}
-            
-            {/* Afișează toate imaginile, dar doar cea curentă este vizibilă */}
-            {frames.map((src, index) => (
-                <Image
-                    key={index}
-                    src={src}
-                    alt={`Vehicul, unghi ${index + 1}`}
-                    className={`absolute w-full h-full object-contain transition-opacity duration-100 ${index === currentFrame ? 'opacity-100' : 'opacity-0'}`}
-                    draggable="false"
-                />
-            ))}
-             <div className="absolute bottom-4 text-xs bg-black/50 text-white px-3 py-1 rounded-full">
-                Trageți pentru a roti imaginea
+    // Dacă nu există o sursă de imagine, afișăm un mesaj corespunzător.
+    if (!src) {
+        return (
+            <div className="relative w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+                <p className="text-muted dark:text-gray-400">Vizualizare 360° indisponibilă.</p>
             </div>
-        </div>
+        );
+    }
+
+    // Acesta este elementul container. Pannellum va prelua controlul asupra conținutului său.
+    // Asigurăm că are dimensiuni complete pentru a umple spațiul alocat.
+    return (
+        <div ref={viewerRef} className="w-full h-full"></div>
     );
 };
 

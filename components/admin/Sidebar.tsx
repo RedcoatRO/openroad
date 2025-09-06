@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Logo, UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon } from '../icons'; // Am adăugat iconițe noi
+import { Logo, UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon, ImageIcon } from '../icons'; // Am adăugat iconițe noi
 
 interface SidebarProps {
     isSidebarOpen: boolean;
@@ -19,6 +19,7 @@ const navItems = [
     { to: '/admin/utilizatori', label: 'Utilizatori' },
     { to: '/admin/continut', label: 'Conținut' },
     { to: '/admin/editor-vizual', label: 'Editor Vizual', icon: <PaletteIcon className="w-4 h-4 mr-3" /> },
+    { to: '/admin/ilustratii', label: 'Galerie Ilustrații', icon: <ImageIcon className="w-4 h-4 mr-3" /> },
     { to: '/admin/rapoarte', label: 'Rapoarte', icon: <LineChartIcon className="w-4 h-4 mr-3" /> },
     { to: '/admin/istoric', label: 'Istoric Modificări', icon: <HistoryIcon className="w-4 h-4 mr-3" /> },
 ];

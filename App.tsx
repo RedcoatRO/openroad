@@ -44,6 +44,7 @@ import ClientManagementPage from './pages/admin/ClientManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import VisualEditorPage from './pages/admin/VisualEditorPage';
+import ImageGalleryPage from './pages/admin/ImageGalleryPage';
 
 const MainLayout: React.FC = () => {
     const [isModalOpen, setModalOpen] = useState(false);
@@ -260,6 +261,7 @@ const App: React.FC = () => {
                   <Route path="utilizatori" element={<UserManagementPage />} />
                   <Route path="continut" element={<ContentManagementPage />} />
                   <Route path="editor-vizual" element={<VisualEditorPage />} />
+                  <Route path="ilustratii" element={<ImageGalleryPage />} />
                   <Route path="clienti" element={<ClientManagementPage />} />
                   <Route path="rapoarte" element={<ReportsPage />} />
                   <Route path="istoric" element={<AuditLogPage />} />

@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
 import StructuredData from '../components/StructuredData';
 import { EuroIcon, ShieldCheckIcon, WrenchIcon, CheckCircleIcon } from '../components/icons';
+import { adminDataService } from '../utils/adminDataService';
 
 const ServiceLeasingPage: React.FC = () => {
     const { onQuoteClick } = useOutletContext<{ onQuoteClick: () => void }>();
@@ -27,11 +28,11 @@ const ServiceLeasingPage: React.FC = () => {
         <>
             <StructuredData schema={serviceSchema} />
             {/* Hero Section */}
-            <section className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: "url('https://picsum.photos/seed/leasing/1920/1080')" }}>
+            <section data-editable-id="leasing-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${adminDataService.getSingleContent('leasing-hero-bg', 'https://picsum.photos/seed/leasing/1920/1080')}')` }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold">Leasing Operațional</h1>
-                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Mobilitate predictibilă, costuri optimizate și zero griji administrative.</p>
+                    <h1 data-editable-id="leasing-hero-title" className="text-4xl md:text-5xl font-bold">{adminDataService.getSingleContent('leasing-hero-title', 'Leasing Operațional')}</h1>
+                    <p data-editable-id="leasing-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{adminDataService.getSingleContent('leasing-hero-subtitle', 'Mobilitate predictibilă, costuri optimizate și zero griji administrative.')}</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>
@@ -40,7 +41,7 @@ const ServiceLeasingPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-12">
-                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Avantajele Leasingului Operațional</h2>
+                        <h2 data-editable-id="leasing-benefits-title" className="text-3xl font-bold text-text-main dark:text-white">{adminDataService.getSingleContent('leasing-benefits-title', 'Avantajele Leasingului Operațional')}</h2>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="text-center"><EuroIcon className="w-10 h-10 text-primary mx-auto mb-3"/><h3 className="font-bold text-lg">Costuri Fixe</h3><p className="text-sm text-muted">O singură rată lunară fixă acoperă totul.</p></div>
@@ -54,7 +55,7 @@ const ServiceLeasingPage: React.FC = () => {
             <section className="py-20 bg-bg-alt dark:bg-gray-800">
                 <div className="container mx-auto px-4">
                      <div className="text-center max-w-3xl mx-auto mb-12">
-                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Cum funcționează?</h2>
+                        <h2 data-editable-id="leasing-how-title" className="text-3xl font-bold text-text-main dark:text-white">{adminDataService.getSingleContent('leasing-how-title', 'Cum funcționează?')}</h2>
                     </div>
                     <div className="grid md:grid-cols-4 gap-8 text-center">
                         <div><strong className="text-primary text-4xl block">1</strong><p className="mt-2 font-semibold">Consultanță</p><p className="text-sm text-muted">Analizăm nevoile tale.</p></div>
@@ -68,8 +69,8 @@ const ServiceLeasingPage: React.FC = () => {
             {/* Closing CTA */}
             <section className="bg-primary text-white">
                 <div className="container mx-auto px-4 py-16 text-center">
-                    <h2 className="text-3xl font-bold">Gata să externalizezi managementul flotei?</h2>
-                    <p className="mt-4 max-w-2xl mx-auto text-blue-100">Contactează-ne pentru o ofertă personalizată și descoperă eficiența leasingului operațional.</p>
+                    <h2 data-editable-id="leasing-cta-title" className="text-3xl font-bold">{adminDataService.getSingleContent('leasing-cta-title', 'Gata să externalizezi managementul flotei?')}</h2>
+                    <p data-editable-id="leasing-cta-subtitle" className="mt-4 max-w-2xl mx-auto text-blue-100">{adminDataService.getSingleContent('leasing-cta-subtitle', 'Contactează-ne pentru o ofertă personalizată și descoperă eficiența leasingului operațional.')}</p>
                     <button onClick={onQuoteClick} className="mt-8 inline-block bg-white text-primary font-bold px-8 py-3 rounded-btn hover:bg-blue-50 transition-colors">
                         Solicită ofertă
                     </button>

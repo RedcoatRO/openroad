@@ -1,11 +1,11 @@
+
 import React, { useContext } from 'react';
 import { XIcon, HeartIcon } from './icons';
 import { FavoritesContext } from '../contexts/FavoritesContext';
-import { vehiclesData } from '../data/vehicles';
+import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
 import VehicleCard from './VehicleCard';
 import type { Vehicle } from '../types';
 
-// FIX: Add onStockAlertClick to the props interface to be able to pass it down.
 interface FavoritesModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -24,7 +24,9 @@ const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuot
     }
 
     const { favoriteIds } = favoritesContext;
-    const favoriteVehicles = vehiclesData.filter(v => favoriteIds.includes(v.id));
+    // Încarcă toate vehiculele din serviciu pentru a avea datele actualizate
+    const allVehicles = adminDataService.getVehicles();
+    const favoriteVehicles = allVehicles.filter(v => favoriteIds.includes(v.id));
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="favorites-title">

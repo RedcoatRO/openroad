@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SearchIcon, XIcon, CarIcon } from './icons';
-import { vehiclesData } from '../data/vehicles';
+import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
 import type { SearchResult } from '../types';
 
 // Sursa de date centralizată pentru paginile site-ului
@@ -31,6 +31,9 @@ const SearchBar: React.FC = () => {
         
         const lowerCaseQuery = currentQuery.toLowerCase();
         
+        // Încarcă datele actualizate ale vehiculelor
+        const vehiclesData = adminDataService.getVehicles();
+
         // Caută în vehicule
         const vehicleResults: SearchResult[] = vehiclesData
             .filter(v => v.model.toLowerCase().includes(lowerCaseQuery))

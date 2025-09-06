@@ -21,8 +21,8 @@ export interface Vehicle {
   engine: string;
   consumption: string;
   view360?: {
-    exterior: string[];
-    interior: string[];
+    exterior: string;
+    interior: string;
   };
   fuelType: 'Benzină' | 'Diesel' | 'Hibrid' | 'Electrică';
   power: number; 

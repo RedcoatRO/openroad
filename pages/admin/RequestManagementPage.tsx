@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { QuoteRequest, RequestStatus } from '../../types';
-import { vehiclesData } from '../../data/vehicles';
 import { DownloadIcon, PrinterIcon } from '../../components/icons';
 
 const RequestManagementPage: React.FC = () => {
@@ -15,7 +14,11 @@ const RequestManagementPage: React.FC = () => {
         setRequests(adminDataService.getRequests());
     };
 
-    const getVehicleModel = (id: number) => vehiclesData.find(v => v.id === id)?.model || 'Necunoscut';
+    // Obține modelul vehiculului pe baza ID-ului, folosind datele dinamice
+    const getVehicleModel = (id: number) => {
+        const allVehicles = adminDataService.getVehicles();
+        return allVehicles.find(v => v.id === id)?.model || 'Vehicul șters';
+    };
     
     const handleExportCSV = () => {
         const headers = ["ID Solicitare", "Data", "Companie", "Contact", "Email", "Status"];

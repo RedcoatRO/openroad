@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Vehicle } from '../../types';
 
@@ -8,30 +9,33 @@ interface VehicleFormModalProps {
     vehicle: Vehicle | null;
 }
 
+// Starea inițială goală pentru formularul de adăugare
+const emptyFormState = {
+    model: '', brand: '', sku: '', type: 'Sedan', tags: '', perks: '',
+    price: 0, image: '', transmission: 'Manuală', engine: '',
+    consumption: '', fuelType: 'Benzină', power: 0, features: '',
+    popularity: 50, isAvailable: true,
+    view360_exterior: '', view360_interior: ''
+};
+
 const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, onSave, vehicle }) => {
     // Starea internă a formularului, inițializată cu datele vehiculului (dacă există) sau cu valori goale
-    const [formData, setFormData] = useState({
-        model: '', brand: '', sku: '', type: 'Sedan', tags: '', perks: '',
-        price: 0, image: '', transmission: 'Manuală', engine: '',
-        consumption: '', fuelType: 'Benzină', power: 0, features: '',
-        popularity: 50, isAvailable: true
-    });
+    const [formData, setFormData] = useState(emptyFormState);
 
     useEffect(() => {
         if (vehicle) {
+            // Populează formularul cu datele vehiculului selectat pentru editare
             setFormData({
                 ...vehicle,
                 tags: vehicle.tags.join(', '),
                 perks: vehicle.perks.join(', '),
                 features: vehicle.features.join(', '),
+                view360_exterior: vehicle.view360?.exterior || '',
+                view360_interior: vehicle.view360?.interior || '',
             });
         } else {
-             setFormData({
-                model: '', brand: '', sku: '', type: 'Sedan', tags: '', perks: '',
-                price: 0, image: '', transmission: 'Manuală', engine: '',
-                consumption: '', fuelType: 'Benzină', power: 0, features: '',
-                popularity: 50, isAvailable: true
-            });
+            // Resetează formularul la starea goală pentru adăugarea unui vehicul nou
+             setFormData(emptyFormState);
         }
     }, [vehicle, isOpen]);
 
@@ -48,11 +52,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
         }
     };
     
-    // FIX: The form state widens the union types for select fields (e.g., 'type') to a generic 'string'.
-    // We cast them back to the specific union types required by the 'Vehicle' interface to prevent type errors on save.
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
+        // Se construiește obiectul vehicul final, procesând string-urile (ex: tags) înapoi în array-uri
+        // și asamblând obiectul view360.
         const vehiclePayload = {
             ...formData,
             type: formData.type as Vehicle['type'],
@@ -61,7 +65,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
             tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean),
             perks: formData.perks.split(',').map(s => s.trim()).filter(Boolean),
             features: formData.features.split(',').map(s => s.trim()).filter(Boolean),
+            view360: {
+                exterior: formData.view360_exterior,
+                interior: formData.view360_interior,
+            }
         };
+        // Se elimină câmpurile temporare din payload
+        delete (vehiclePayload as any).view360_exterior;
+        delete (vehiclePayload as any).view360_interior;
 
         if (vehicle) {
             onSave({ ...vehicle, ...vehiclePayload });
@@ -93,6 +104,8 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
                         <div><label className={labelClass}>Tip Combustibil</label><select name="fuelType" value={formData.fuelType} onChange={handleChange} className={inputClass}><option>Benzină</option><option>Diesel</option><option>Hibrid</option><option>Electrică</option></select></div>
                         <div><label className={labelClass}>Transmisie</label><select name="transmission" value={formData.transmission} onChange={handleChange} className={inputClass}><option>Manuală</option><option>Automată</option></select></div>
                          <div className="md:col-span-2"><label className={labelClass}>URL Imagine Principală</label><input type="text" name="image" value={formData.image} onChange={handleChange} className={inputClass} required/></div>
+                         <div className="md:col-span-2"><label className={labelClass}>URL Imagine 360° Exterior (panoramic)</label><input type="text" name="view360_exterior" value={formData.view360_exterior} onChange={handleChange} className={inputClass} placeholder="https://..."/></div>
+                         <div className="md:col-span-2"><label className={labelClass}>URL Imagine 360° Interior (panoramic)</label><input type="text" name="view360_interior" value={formData.view360_interior} onChange={handleChange} className={inputClass} placeholder="https://..."/></div>
                          <div className="md:col-span-2"><label className={labelClass}>Etichete (separate prin virgulă)</label><input type="text" name="tags" value={formData.tags} onChange={handleChange} className={inputClass}/></div>
                          <div className="md:col-span-2"><label className={labelClass}>Beneficii (separate prin virgulă)</label><input type="text" name="perks" value={formData.perks} onChange={handleChange} className={inputClass}/></div>
                          <div className="md:col-span-2"><label className={labelClass}>Dotări (separate prin virgulă)</label><input type="text" name="features" value={formData.features} onChange={handleChange} className={inputClass}/></div>
@@ -101,8 +114,8 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
                     </div>
                 </form>
                 <div className="p-4 border-t flex justify-end space-x-2">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg text-sm">Anulează</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-primary text-white rounded-lg text-sm">Salvează</button>
+                    <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg text-sm">Anulează</button>
+                    <button type="submit" onClick={handleSubmit} form="vehicle-form" className="px-4 py-2 bg-primary text-white rounded-lg text-sm">Salvează</button>
                 </div>
             </div>
         </div>

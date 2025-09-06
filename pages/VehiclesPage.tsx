@@ -4,14 +4,14 @@ import { useOutletContext } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { CheckCircleIcon, ChevronDownIcon } from '../components/icons';
 import ComparisonModal from '../components/ComparisonModal';
-import { vehiclesData } from '../data/vehicles';
+import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
 import VehicleCard from '../components/VehicleCard';
 import Breadcrumbs from '../components/Breadcrumbs'; 
 
 interface OutletContextType {
     onQuoteClick: (model?: string) => void;
     onViewDetails: (vehicle: Vehicle) => void;
-    onStockAlertClick: (vehicle: Vehicle) => void; // Am adăugat funcția
+    onStockAlertClick: (vehicle: Vehicle) => void;
 }
 
 const benefitsData = [
@@ -63,11 +63,14 @@ const VehiclesPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('popularity-desc');
     const [showFeatures, setShowFeatures] = useState(false);
 
+    // Încarcă toate vehiculele folosind serviciul de date
+    const allVehicles = adminDataService.getVehicles();
+
     const allFeatures = useMemo(() => {
         const featuresSet = new Set<string>();
-        vehiclesData.forEach(v => v.features.forEach(f => featuresSet.add(f)));
+        allVehicles.forEach(v => v.features.forEach(f => featuresSet.add(f)));
         return Array.from(featuresSet).sort();
-    }, []);
+    }, [allVehicles]);
 
     const handleFeatureChange = (feature: string) => {
         setFeatureFilters(prev => 
@@ -76,7 +79,7 @@ const VehiclesPage: React.FC = () => {
     };
 
     const filteredAndSortedVehicles = useMemo(() => {
-        let result = vehiclesData;
+        let result = allVehicles;
 
         if (fuelFilter !== 'Toate') {
             result = result.filter(v => v.fuelType === fuelFilter);
@@ -106,7 +109,7 @@ const VehiclesPage: React.FC = () => {
         });
 
         return result;
-    }, [fuelFilter, powerFilter, featureFilters, sortBy]);
+    }, [allVehicles, fuelFilter, powerFilter, featureFilters, sortBy]);
 
     const handleToggleCompare = (vehicle: Vehicle) => {
         setComparisonList(prevList => {
@@ -189,7 +192,7 @@ const VehiclesPage: React.FC = () => {
                             onCompareToggle={handleToggleCompare}
                             isInCompare={comparisonList.some(v => v.id === vehicle.id)}
                             onViewDetails={onViewDetails}
-                            onStockAlertClick={onStockAlertClick} // Am pasat funcția
+                            onStockAlertClick={onStockAlertClick}
                         />
                     ))}
                 </div>

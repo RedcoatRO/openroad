@@ -1,18 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
-import type { Client, QuoteRequest } from '../../types';
-import { vehiclesData } from '../../data/vehicles';
+import type { Client, QuoteRequest, Vehicle } from '../../types';
 
 const ClientManagementPage: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     useEffect(() => {
         setClients(adminDataService.getClients());
+        setVehicles(adminDataService.getVehicles()); // Încarcă datele actualizate ale vehiculelor
     }, []);
 
-    const getVehicleModel = (id: number) => vehiclesData.find(v => v.id === id)?.model || 'Necunoscut';
+    const getVehicleModel = (id: number) => vehicles.find(v => v.id === id)?.model || 'Necunoscut';
 
     return (
         <div className="space-y-6">

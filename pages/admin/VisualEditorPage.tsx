@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Testimonial } from '../../types';
@@ -45,10 +46,10 @@ const EditPanel: React.FC<{
                         onChange={(e) => setContent(e.target.value)}
                         rows={3}
                         className="w-full p-2 border rounded-md text-sm font-mono"
-                        placeholder="https://exemplu.com/imagine.jpg"
+                        placeholder="https://exemplu.com/imagine.jpg sau data:image/..."
                     />
                     <p className="text-xs text-muted">
-                        Încarcă imaginea pe un serviciu extern (ex: Imgur, Cloudinary) și lipește link-ul direct aici.
+                        Lipește un link direct către o imagine sau folosește un link din Galeria de Ilustrații.
                     </p>
                     {/* Previzualizare imagine, dacă URL-ul este valid */}
                     {content && (
@@ -120,12 +121,22 @@ const TestimonialManager: React.FC<{ onContentUpdate: () => void }> = ({ onConte
     );
 };
 
+// Lista de pagini disponibile pentru editare
+const editablePages = [
+    { name: 'Acasă', path: '/' },
+    { name: 'Despre noi', path: '/#/despre-noi' },
+    { name: 'Servicii', path: '/#/servicii' },
+    { name: 'Leasing Operațional', path: '/#/servicii/leasing-operational' },
+    { name: 'Închiriere Termen Lung', path: '/#/servicii/inchiriere-termen-lung' },
+];
+
 // Componenta principală a paginii Editorului Vizual
 const VisualEditorPage: React.FC = () => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [isIframeReady, setIsIframeReady] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingElement, setEditingElement] = useState<{ id: string; type: 'text' | 'image'; content: string } | null>(null);
+    const [currentPage, setCurrentPage] = useState(editablePages[0].path);
 
     // Ascultă mesajele venite de la iframe (site-ul public)
     useEffect(() => {
@@ -133,18 +144,25 @@ const VisualEditorPage: React.FC = () => {
             const { type, payload } = event.data;
             if (type === 'FL_PRO_IFRAME_READY') {
                 setIsIframeReady(true);
+                // Dacă modul de editare este deja activ, îl reactivăm pentru noua pagină
+                if (isEditMode) {
+                    iframeRef.current?.contentWindow?.postMessage({ type: 'FL_PRO_EDIT_MODE' }, '*');
+                }
             } else if (type === 'FL_PRO_ELEMENT_CLICKED') {
                 setEditingElement(payload);
             }
         };
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, []);
+    }, [isEditMode]); // Adăugăm isEditMode ca dependență
 
     // Funcția de reîncărcare a iframe-ului pentru a afișa modificările
-    const reloadIframe = () => {
+    const reloadIframe = (forceReload: boolean = false) => {
         if (iframeRef.current) {
-            iframeRef.current.src = iframeRef.current.src;
+            // Reîncărcarea forțată este necesară după salvarea datelor structurate (ex: testimoniale)
+            if (forceReload) {
+                iframeRef.current.src = iframeRef.current.src;
+            }
         }
     };
     
@@ -159,7 +177,7 @@ const VisualEditorPage: React.FC = () => {
         if (newMode) {
             iframeRef.current?.contentWindow?.postMessage({ type: 'FL_PRO_EDIT_MODE' }, '*');
         } else {
-            reloadIframe(); // Reîncarcă iframe-ul pentru a ieși curat din modul de editare
+            reloadIframe(true); // Reîncarcă iframe-ul pentru a ieși curat din modul de editare
             setEditingElement(null);
         }
     };
@@ -174,6 +192,16 @@ const VisualEditorPage: React.FC = () => {
         }, '*');
         setEditingElement(null);
     };
+    
+    // Schimbă pagina afișată în iframe
+    const handlePageChange = (path: string) => {
+        if (iframeRef.current) {
+            setIsIframeReady(false); // Resetează starea 'ready' la schimbarea paginii
+            setEditingElement(null); // Închide panoul de editare
+            iframeRef.current.src = path;
+            setCurrentPage(path);
+        }
+    };
 
     return (
         <div className="flex h-full -m-4 sm:-m-6 lg:-m-8">
@@ -181,6 +209,20 @@ const VisualEditorPage: React.FC = () => {
             <aside className="w-80 bg-bg-admin-alt border-r p-4 space-y-4 flex-shrink-0 flex flex-col">
                 <h1 className="text-xl font-semibold text-text-main flex items-center gap-2"><PaletteIcon /> Editor Vizual</h1>
                 
+                {/* Selector de pagină */}
+                <div>
+                    <label className="text-sm font-medium">Editează Pagina:</label>
+                    <select
+                        value={currentPage}
+                        onChange={(e) => handlePageChange(e.target.value)}
+                        className="w-full p-2 mt-1 border rounded-md"
+                    >
+                        {editablePages.map(page => (
+                            <option key={page.path} value={page.path}>{page.name}</option>
+                        ))}
+                    </select>
+                </div>
+
                 <button
                     onClick={toggleEditMode}
                     className={`w-full font-semibold py-2.5 rounded-lg text-white transition-colors ${isEditMode ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary-600'}`}
@@ -202,17 +244,19 @@ const VisualEditorPage: React.FC = () => {
                     />
                 )}
 
-                <div className="flex-grow pt-4 border-t overflow-y-auto">
-                    <TestimonialManager onContentUpdate={reloadIframe} />
-                    {/* Managementul partenerilor poate fi adăugat aici într-un mod similar */}
-                </div>
+                {/* Afișează managerul de testimoniale doar pe pagina Acasă */}
+                {currentPage === '/' && (
+                    <div className="flex-grow pt-4 border-t overflow-y-auto">
+                        <TestimonialManager onContentUpdate={() => reloadIframe(true)} />
+                    </div>
+                )}
             </aside>
 
             {/* Iframe pentru previzualizarea site-ului */}
             <main className="flex-1 bg-gray-300">
                 <iframe
                     ref={iframeRef}
-                    src="/"
+                    src={currentPage}
                     title="Previzualizare Site"
                     className="w-full h-full border-0"
                 />

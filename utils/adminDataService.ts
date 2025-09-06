@@ -7,6 +7,15 @@ import { vehiclesData as initialVehiclesData } from '../data/vehicles';
  * panoului de administrare.
  */
 
+// --- Tipuri Interne ---
+interface UploadedImage {
+    id: string;
+    dataUrl: string;
+    name: string;
+    size: number;
+}
+
+
 // --- Date Inițiale (Seed Data) ---
 const initialUsers: User[] = [
     { id: 1, name: 'Admin Principal', email: 'admin@fleetlease.pro', role: 'Admin', lastLogin: new Date().toISOString() },
@@ -39,7 +48,7 @@ function getData<T>(key: string, defaultValue: T): T {
         if (data) {
             return JSON.parse(data);
         } else {
-            localStorage.setItem(key, JSON.stringify(defaultValue));
+            // Nu salvăm valoarea default aici pentru a permite actualizări ale datelor inițiale
             return defaultValue;
         }
     } catch (error) {
@@ -73,8 +82,26 @@ function logAction(action: string, details: string): void {
 
 export const adminDataService = {
     // Vehicule
-    getVehicles: (): Vehicle[] => getData<Vehicle[]>('admin_vehicles', initialVehiclesData),
+    getVehicles: (): Vehicle[] => {
+        // Această funcție implementează un sistem de "override".
+        // Verifică mai întâi dacă există date modificate de admin în localStorage.
+        // Dacă da, returnează versiunea salvată.
+        // Dacă nu, returnează datele inițiale din fișierul `data/vehicles.ts`.
+        // Prima operațiune de scriere (add/update/delete) va copia datele inițiale
+        // în localStorage, creând astfel o versiune de lucru.
+        const storedData = localStorage.getItem('admin_vehicles');
+        if (storedData) {
+            try {
+                return JSON.parse(storedData);
+            } catch (e) {
+                console.error("Eroare la parsarea datelor vehiculelor din localStorage, se revine la datele inițiale.", e);
+                return initialVehiclesData; // Fallback în caz de eroare de parsare
+            }
+        }
+        return initialVehiclesData; // Fallback dacă nu există nimic în localStorage
+    },
     updateVehicle: (updatedVehicle: Vehicle): void => {
+        // Asigură că se lucrează pe o copie a datelor (din localStorage sau inițiale) la prima modificare
         const vehicles = adminDataService.getVehicles();
         const index = vehicles.findIndex(v => v.id === updatedVehicle.id);
         if (index !== -1) {
@@ -85,7 +112,7 @@ export const adminDataService = {
     },
     addVehicle: (newVehicleData: Omit<Vehicle, 'id'>): void => {
         const vehicles = adminDataService.getVehicles();
-        const newVehicle: Vehicle = { ...newVehicleData, id: Date.now(), popularity: 50 };
+        const newVehicle: Vehicle = { ...newVehicleData, id: Date.now(), popularity: 50, reviews: [] };
         setData('admin_vehicles', [...vehicles, newVehicle]);
         logAction('add_vehicle', `A adăugat vehiculul: ${newVehicle.model}`);
     },
@@ -213,4 +240,21 @@ export const adminDataService = {
 
     // Audit Log
     getLogs: (): AuditLogEntry[] => getData<AuditLogEntry[]>('admin_audit_log', []),
+
+    // Image Gallery
+    getUploadedImages: (): UploadedImage[] => getData<UploadedImage[]>('admin_uploaded_images', []),
+    addUploadedImage: (image: Omit<UploadedImage, 'id'>): void => {
+        const images = adminDataService.getUploadedImages();
+        const newImage: UploadedImage = { ...image, id: Date.now().toString() };
+        setData('admin_uploaded_images', [newImage, ...images]);
+        logAction('upload_image', `A încărcat imaginea: ${image.name}`);
+    },
+    deleteUploadedImage: (imageId: string): void => {
+        const images = adminDataService.getUploadedImages();
+        const imageToDelete = images.find(img => img.id === imageId);
+        setData('admin_uploaded_images', images.filter(img => img.id !== imageId));
+        if (imageToDelete) {
+            logAction('delete_image', `A șters imaginea: ${imageToDelete.name}`);
+        }
+    },
 };
