@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -42,6 +42,7 @@ import ContentManagementPage from './pages/admin/ContentManagementPage';
 import ClientManagementPage from './pages/admin/ClientManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
+import VisualEditorPage from './pages/admin/VisualEditorPage';
 
 const MainLayout: React.FC = () => {
     const [isModalOpen, setModalOpen] = useState(false);
@@ -80,6 +81,80 @@ const MainLayout: React.FC = () => {
             "contactType": "customer service"
         }
     };
+    
+    // Script to enable visual editing when inside an iframe
+    useEffect(() => {
+        const isInsideIframe = window.self !== window.top;
+        if (!isInsideIframe) return;
+
+        const handleMessage = (event: MessageEvent) => {
+            const { type, payload } = event.data;
+
+            if (type === 'FL_PRO_EDIT_MODE') {
+                document.body.classList.add('visual-editor-active');
+                // Add styles for highlighting editable elements
+                const style = document.createElement('style');
+                style.id = 'visual-editor-styles';
+                style.innerHTML = `
+                    .visual-editor-active [data-editable-id] {
+                        outline: 2px dashed #0B5FFF;
+                        outline-offset: 4px;
+                        cursor: pointer;
+                        transition: all 0.2s ease-in-out;
+                    }
+                    .visual-editor-active [data-editable-id]:hover {
+                        outline-style: solid;
+                        background-color: rgba(11, 95, 255, 0.1);
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Add click listeners
+                document.querySelectorAll('[data-editable-id]').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = el.getAttribute('data-editable-id');
+                        const isImage = el.tagName === 'IMG' || (el instanceof HTMLElement && el.style.backgroundImage);
+                        
+                        window.top?.postMessage({
+                            type: 'FL_PRO_ELEMENT_CLICKED',
+                            payload: {
+                                id: id,
+                                type: isImage ? 'image' : 'text',
+                                content: isImage ? (el as HTMLImageElement).src || (el as HTMLElement).style.backgroundImage : el.textContent
+                            }
+                        }, '*');
+                    });
+                });
+            } else if (type === 'FL_PRO_UPDATE_CONTENT') {
+                const { id, content } = payload;
+                const element = document.querySelector(`[data-editable-id="${id}"]`);
+                if (element) {
+                    if (element.tagName === 'IMG') {
+                        (element as HTMLImageElement).src = content;
+                    } else if (element instanceof HTMLElement && element.style.backgroundImage) {
+                         element.style.backgroundImage = `url('${content}')`;
+                    } else {
+                        element.textContent = content;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        // Notify parent that iframe is ready to receive messages
+        window.top?.postMessage({ type: 'FL_PRO_IFRAME_READY' }, '*');
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+            document.body.classList.remove('visual-editor-active');
+            const style = document.getElementById('visual-editor-styles');
+            if (style) style.remove();
+        };
+    }, []);
+
 
     return (
         <div className="font-sans text-text-main bg-bg-main dark:bg-gray-900 transition-colors duration-300">
@@ -154,6 +229,7 @@ const App: React.FC = () => {
                   <Route path="solicitari" element={<RequestManagementPage />} />
                   <Route path="utilizatori" element={<UserManagementPage />} />
                   <Route path="continut" element={<ContentManagementPage />} />
+                  <Route path="editor-vizual" element={<VisualEditorPage />} />
                   <Route path="clienti" element={<ClientManagementPage />} />
                   <Route path="rapoarte" element={<ReportsPage />} />
                   <Route path="istoric" element={<AuditLogPage />} />

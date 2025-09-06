@@ -1,27 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
-import type { QuoteRequest, RequestStatus, Vehicle } from '../../types';
-import { api } from '../../utils/api'; // Am importat noul API
+import type { QuoteRequest, RequestStatus } from '../../types';
+import { vehiclesData } from '../../data/vehicles';
 import { DownloadIcon, PrinterIcon } from '../../components/icons';
 
 const RequestManagementPage: React.FC = () => {
     const [requests, setRequests] = useState<QuoteRequest[]>([]);
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]); // Stare pentru a stoca vehiculele
 
-    // Încărcarea datelor la montarea componentei
-    useEffect(() => { 
-        setRequests(adminDataService.getRequests()); 
-        // Preluăm asincron vehiculele pentru a avea acces la modele
-        api.getVehicles().then(setVehicles);
-    }, []);
+    useEffect(() => { setRequests(adminDataService.getRequests()); }, []);
 
     const handleStatusChange = (requestId: string, newStatus: RequestStatus) => {
         adminDataService.updateRequestStatus(requestId, newStatus);
         setRequests(adminDataService.getRequests());
     };
 
-    // Funcție pentru a obține modelul vehiculului pe baza ID-ului din starea încărcată
-    const getVehicleModel = (id: number) => vehicles.find(v => v.id === id)?.model || 'ID necunoscut';
+    const getVehicleModel = (id: number) => vehiclesData.find(v => v.id === id)?.model || 'Necunoscut';
     
     const handleExportCSV = () => {
         const headers = ["ID Solicitare", "Data", "Companie", "Contact", "Email", "Status"];

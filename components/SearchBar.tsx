@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SearchIcon, XIcon, CarIcon } from './icons';
-import { api } from '../utils/api';
-import type { SearchResult, Vehicle } from '../types';
+import { vehiclesData } from '../data/vehicles';
+import type { SearchResult } from '../types';
 
 // Sursa de date centralizată pentru paginile site-ului
 const pageData: SearchResult[] = [
@@ -18,16 +19,8 @@ const SearchBar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
-    const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]); // Stare pentru vehiculele încărcate
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // Încarcă vehiculele de la API o singură dată, la deschiderea căutării
-    useEffect(() => {
-        if (isOpen && allVehicles.length === 0) {
-            api.getVehicles().then(setAllVehicles);
-        }
-    }, [isOpen, allVehicles.length]);
 
     // Funcția de căutare cu debounce
     const performSearch = useCallback((currentQuery: string) => {
@@ -38,14 +31,14 @@ const SearchBar: React.FC = () => {
         
         const lowerCaseQuery = currentQuery.toLowerCase();
         
-        // Caută în vehiculele încărcate în starea componentei
-        const vehicleResults: SearchResult[] = allVehicles
+        // Caută în vehicule
+        const vehicleResults: SearchResult[] = vehiclesData
             .filter(v => v.model.toLowerCase().includes(lowerCaseQuery))
             .map(v => ({
                 type: 'vehicle',
                 title: v.model,
                 description: `${v.type} • ${v.fuelType}`,
-                path: `/masini` 
+                path: `/masini` // Poate fi extins să ancoreze la vehicul
             }));
             
         // Caută în pagini
@@ -53,7 +46,7 @@ const SearchBar: React.FC = () => {
             .filter(p => p.title.toLowerCase().includes(lowerCaseQuery) || p.description?.toLowerCase().includes(lowerCaseQuery))
 
         setResults([...vehicleResults, ...pageResults].slice(0, 6)); // Limitează la 6 rezultate
-    }, [allVehicles]);
+    }, []);
 
     // Efect pentru a implementa debounce la căutare
     useEffect(() => {

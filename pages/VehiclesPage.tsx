@@ -1,16 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { CheckCircleIcon, ChevronDownIcon } from '../components/icons';
 import ComparisonModal from '../components/ComparisonModal';
-import { api } from '../utils/api'; // Am importat noul API
+import { vehiclesData } from '../data/vehicles';
 import VehicleCard from '../components/VehicleCard';
 import Breadcrumbs from '../components/Breadcrumbs'; 
 
 interface OutletContextType {
     onQuoteClick: (model?: string) => void;
     onViewDetails: (vehicle: Vehicle) => void;
-    onStockAlertClick: (vehicle: Vehicle) => void;
+    onStockAlertClick: (vehicle: Vehicle) => void; // Am adăugat funcția
 }
 
 const benefitsData = [
@@ -53,8 +54,6 @@ const CompareBar: React.FC<{
 
 const VehiclesPage: React.FC = () => {
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [comparisonList, setComparisonList] = useState<Vehicle[]>([]);
     const [isCompareModalOpen, setCompareModalOpen] = useState(false);
     
@@ -63,24 +62,21 @@ const VehiclesPage: React.FC = () => {
     const [featureFilters, setFeatureFilters] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState<string>('popularity-desc');
     const [showFeatures, setShowFeatures] = useState(false);
-    
-    // Preluarea asincronă a vehiculelor
-    useEffect(() => {
-        api.getVehicles().then(data => {
-            setVehicles(data);
-            setIsLoading(false);
-        });
-    }, []);
 
-    // Memoizare pentru a recalcula doar când se schimbă datele sau filtrele
     const allFeatures = useMemo(() => {
         const featuresSet = new Set<string>();
-        vehicles.forEach(v => v.features.forEach(f => featuresSet.add(f)));
+        vehiclesData.forEach(v => v.features.forEach(f => featuresSet.add(f)));
         return Array.from(featuresSet).sort();
-    }, [vehicles]);
+    }, []);
+
+    const handleFeatureChange = (feature: string) => {
+        setFeatureFilters(prev => 
+            prev.includes(feature) ? prev.filter(f => f !== feature) : [...prev, feature]
+        );
+    };
 
     const filteredAndSortedVehicles = useMemo(() => {
-        let result = vehicles;
+        let result = vehiclesData;
 
         if (fuelFilter !== 'Toate') {
             result = result.filter(v => v.fuelType === fuelFilter);
@@ -110,7 +106,7 @@ const VehiclesPage: React.FC = () => {
         });
 
         return result;
-    }, [vehicles, fuelFilter, powerFilter, featureFilters, sortBy]);
+    }, [fuelFilter, powerFilter, featureFilters, sortBy]);
 
     const handleToggleCompare = (vehicle: Vehicle) => {
         setComparisonList(prevList => {
@@ -132,17 +128,6 @@ const VehiclesPage: React.FC = () => {
     };
 
     const handleClearCompare = () => setComparisonList([]);
-
-    // FIX: Defined the missing 'handleFeatureChange' function.
-    const handleFeatureChange = (feature: string) => {
-        setFeatureFilters(prev => {
-            if (prev.includes(feature)) {
-                return prev.filter(f => f !== feature);
-            } else {
-                return [...prev, feature];
-            }
-        });
-    };
 
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
     
@@ -195,23 +180,19 @@ const VehiclesPage: React.FC = () => {
             </div>
             
             <main className="container mx-auto px-4 py-16">
-                 {isLoading ? (
-                    <div className="text-center p-20">Se încarcă vehiculele...</div>
-                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredAndSortedVehicles.map(vehicle => (
-                            <VehicleCard 
-                                key={vehicle.id} 
-                                vehicle={vehicle} 
-                                onQuoteClick={() => onQuoteClick(vehicle.model)}
-                                onCompareToggle={handleToggleCompare}
-                                isInCompare={comparisonList.some(v => v.id === vehicle.id)}
-                                onViewDetails={onViewDetails}
-                                onStockAlertClick={onStockAlertClick}
-                            />
-                        ))}
-                    </div>
-                 )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredAndSortedVehicles.map(vehicle => (
+                        <VehicleCard 
+                            key={vehicle.id} 
+                            vehicle={vehicle} 
+                            onQuoteClick={() => onQuoteClick(vehicle.model)}
+                            onCompareToggle={handleToggleCompare}
+                            isInCompare={comparisonList.some(v => v.id === vehicle.id)}
+                            onViewDetails={onViewDetails}
+                            onStockAlertClick={onStockAlertClick} // Am pasat funcția
+                        />
+                    ))}
+                </div>
                 <p className="text-center text-xs text-muted dark:text-gray-500 mt-12 max-w-3xl mx-auto">
                     *Prețurile afișate sunt orientative...
                 </p>

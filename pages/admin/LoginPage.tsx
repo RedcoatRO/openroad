@@ -1,4 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
+
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Logo } from '../../components/icons';
@@ -14,19 +15,13 @@ const LoginPage: React.FC = () => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
-    // Efect pentru a naviga automat la pasul următor după ce starea de autentificare se schimbă.
-    // Acest mod este mai robust decât navigarea directă în handler-ul de submit.
-    useEffect(() => {
-        if (auth?.authState === 'requires2FA') {
-            navigate('/admin/2fa');
-        }
-    }, [auth?.authState, navigate]);
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        // Doar încercăm să ne logăm. Navigarea este gestionată de useEffect.
-        if (!(auth && auth.login(username, password))) {
+        if (auth && auth.login(username, password)) {
+            // Dacă datele sunt corecte, navighează la pagina de 2FA
+            navigate('/admin/2fa');
+        } else {
             setError('Nume de utilizator sau parolă incorecte.');
         }
     };
@@ -40,7 +35,7 @@ const LoginPage: React.FC = () => {
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-muted">Utilizator (Hint: lucian)</label>
+                        <label className="block text-sm font-medium text-muted">Utilizator (Hint: admin)</label>
                         <input
                             type="text"
                             value={username}
@@ -50,7 +45,7 @@ const LoginPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-muted">Parolă (Hint: _rent_a_car)</label>
+                        <label className="block text-sm font-medium text-muted">Parolă (Hint: password123)</label>
                         <input
                             type="password"
                             value={password}

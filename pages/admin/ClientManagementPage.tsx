@@ -1,21 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
-import type { Client, QuoteRequest, Vehicle } from '../../types';
-import { api } from '../../utils/api'; // Am importat API-ul
+import type { Client, QuoteRequest } from '../../types';
+import { vehiclesData } from '../../data/vehicles';
 
 const ClientManagementPage: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]); // Stare pentru a stoca vehiculele
 
     useEffect(() => {
         setClients(adminDataService.getClients());
-        // Încarcă asincron vehiculele pentru a putea afișa modelele corecte
-        api.getVehicles().then(setVehicles);
     }, []);
 
-    // Funcția folosește acum starea locală a vehiculelor, încărcată de la API
-    const getVehicleModel = (id: number) => vehicles.find(v => v.id === id)?.model || 'Necunoscut';
+    const getVehicleModel = (id: number) => vehiclesData.find(v => v.id === id)?.model || 'Necunoscut';
 
     return (
         <div className="space-y-6">

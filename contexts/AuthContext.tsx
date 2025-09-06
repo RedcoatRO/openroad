@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, ReactNode, useCallback } from 'react';
 
 // Tipul pentru stările posibile de autentificare
@@ -46,8 +47,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Funcția de login (Pasul 1)
     const login = useCallback((user: string, pass: string): boolean => {
-        // Simulare validare username/parolă cu noile credențiale.
-        if (user === 'lucian' && pass === '_rent_a_car') {
+        // Simulare validare username/parolă. Într-o aplicație reală, s-ar face un request la server.
+        if (user === 'admin' && pass === 'password123') {
             updateAuthState('requires2FA'); // Trecem la starea de așteptare 2FA
             return true;
         }
@@ -56,8 +57,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Funcția de verificare a codului 2FA (Pasul 2)
     const verify2FA = useCallback((code: string): boolean => {
-        // Simulare validare cod 2FA cu noul cod.
-        if (code === '086420') {
+        // Simulare validare cod 2FA. Codul corect este hardcodat.
+        if (code === '123456') {
             updateAuthState('loggedIn'); // Utilizatorul este complet autentificat
             return true;
         }

@@ -1,10 +1,11 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { XIcon, HeartIcon } from './icons';
 import { FavoritesContext } from '../contexts/FavoritesContext';
-import { api } from '../utils/api'; // Am importat API-ul
+import { vehiclesData } from '../data/vehicles';
 import VehicleCard from './VehicleCard';
 import type { Vehicle } from '../types';
 
+// FIX: Add onStockAlertClick to the props interface to be able to pass it down.
 interface FavoritesModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -15,31 +16,15 @@ interface FavoritesModalProps {
 
 const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuoteClick, onViewDetails, onStockAlertClick }) => {
     const favoritesContext = useContext(FavoritesContext);
-    const [favoriteVehicles, setFavoriteVehicles] = useState<Vehicle[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    if (!favoritesContext) {
-        // Acest caz nu ar trebui să apară dacă contextul este configurat corect
-        return null; 
-    }
-    const { favoriteIds } = favoritesContext;
-
-    // Efect pentru a încărca detaliile vehiculelor favorite atunci când modalul este deschis
-    useEffect(() => {
-        if (isOpen) {
-            setIsLoading(true);
-            api.getVehicles().then(allVehicles => {
-                const favoriteDetails = allVehicles.filter(v => favoriteIds.includes(v.id));
-                setFavoriteVehicles(favoriteDetails);
-                setIsLoading(false);
-            }).catch(err => {
-                console.error("Eroare la încărcarea favoritelor:", err);
-                setIsLoading(false);
-            });
-        }
-    }, [isOpen, favoriteIds]);
 
     if (!isOpen) return null;
+
+    if (!favoritesContext) {
+        return <div>Error: Favorites context not available.</div>;
+    }
+
+    const { favoriteIds } = favoritesContext;
+    const favoriteVehicles = vehiclesData.filter(v => favoriteIds.includes(v.id));
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="favorites-title">
@@ -54,9 +39,7 @@ const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuot
                     </button>
                 </div>
                 <div className="flex-grow overflow-auto p-8">
-                    {isLoading ? (
-                         <div className="text-center">Se încarcă favoritele...</div>
-                    ) : favoriteVehicles.length > 0 ? (
+                    {favoriteVehicles.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {favoriteVehicles.map(vehicle => (
                                 <VehicleCard

@@ -1,5 +1,5 @@
 
-import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, RequestStatus } from '../types';
+import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, RequestStatus, Testimonial } from '../types';
 import { vehiclesData as initialVehiclesData } from '../data/vehicles';
 
 /**
@@ -19,10 +19,21 @@ const initialFAQs: FAQItem[] = [
     { id: 2, question: "Ce costuri sunt incluse în rata lunară?", answer: "Rata lunară include RCA, CASCO, mentenanța completă (revizii și reparații), taxele (rovinieta) și un vehicul de înlocuire în caz de imobilizare." }
 ];
 
+const initialTestimonials: Testimonial[] = [
+    { quote: "Am redus costurile cu ~20% în primul an. Servicii impecabile și o echipă de profesioniști.", author: "Andreea P.", role: "CFO", company: "TechNova SRL" },
+    { quote: "Flexibilitatea flotei ne-a permis să ne adaptăm rapid la noile proiecte. Recomand cu încredere!", author: "Mihai D.", role: "Manager Logistica", company: "Construct Group" },
+];
+
+const initialPartners = Array.from({length: 6}, (_, i) => ({
+  id: `partner-${i+1}`,
+  logoUrl: `https://picsum.photos/seed/partner${i+1}/128/32`,
+  name: `Partner ${i+1}`
+}));
+
 
 // --- Funcții Helper ---
 
-function getData<T>(key: string, defaultValue: T[]): T[] {
+function getData<T>(key: string, defaultValue: T): T {
     try {
         const data = localStorage.getItem(key);
         if (data) {
@@ -37,7 +48,7 @@ function getData<T>(key: string, defaultValue: T[]): T[] {
     }
 }
 
-function setData<T>(key: string, data: T[]): void {
+function setData<T>(key: string, data: T): void {
     try {
         localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
@@ -47,7 +58,7 @@ function setData<T>(key: string, data: T[]): void {
 
 // Funcție pentru a adăuga o intrare în log
 function logAction(action: string, details: string): void {
-    const logs = getData<AuditLogEntry>('admin_audit_log', []);
+    const logs = getData<AuditLogEntry[]>('admin_audit_log', []);
     const newLog: AuditLogEntry = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
@@ -62,7 +73,7 @@ function logAction(action: string, details: string): void {
 
 export const adminDataService = {
     // Vehicule
-    getVehicles: (): Vehicle[] => getData<Vehicle>('admin_vehicles', initialVehiclesData),
+    getVehicles: (): Vehicle[] => getData<Vehicle[]>('admin_vehicles', initialVehiclesData),
     updateVehicle: (updatedVehicle: Vehicle): void => {
         const vehicles = adminDataService.getVehicles();
         const index = vehicles.findIndex(v => v.id === updatedVehicle.id);
@@ -74,7 +85,7 @@ export const adminDataService = {
     },
     addVehicle: (newVehicleData: Omit<Vehicle, 'id'>): void => {
         const vehicles = adminDataService.getVehicles();
-        const newVehicle: Vehicle = { ...newVehicleData, id: Date.now() };
+        const newVehicle: Vehicle = { ...newVehicleData, id: Date.now(), popularity: 50 };
         setData('admin_vehicles', [...vehicles, newVehicle]);
         logAction('add_vehicle', `A adăugat vehiculul: ${newVehicle.model}`);
     },
@@ -88,7 +99,7 @@ export const adminDataService = {
     },
 
     // Solicitări
-    getRequests: (): QuoteRequest[] => getData<QuoteRequest>('admin_requests', []),
+    getRequests: (): QuoteRequest[] => getData<QuoteRequest[]>('admin_requests', []),
     addRequest: (newRequestData: Omit<QuoteRequest, 'id' | 'date' | 'status'>): void => {
         const requests = adminDataService.getRequests();
         const newRequest: QuoteRequest = { ...newRequestData, id: Date.now().toString(), date: new Date().toISOString(), status: 'Nouă' };
@@ -128,7 +139,7 @@ export const adminDataService = {
     },
 
     // Utilizatori
-    getUsers: (): User[] => getData<User>('admin_users', initialUsers),
+    getUsers: (): User[] => getData<User[]>('admin_users', initialUsers),
     updateUser: (updatedUser: User): void => {
         const users = adminDataService.getUsers();
         const index = users.findIndex(u => u.id === updatedUser.id);
@@ -148,7 +159,7 @@ export const adminDataService = {
     },
 
     // CMS (FAQ)
-    getFAQs: (): FAQItem[] => getData<FAQItem>('admin_faqs', initialFAQs),
+    getFAQs: (): FAQItem[] => getData<FAQItem[]>('admin_faqs', initialFAQs),
     updateFAQ: (updatedFAQ: FAQItem): void => {
         const faqs = adminDataService.getFAQs();
         const index = faqs.findIndex(f => f.id === updatedFAQ.id);
@@ -172,7 +183,34 @@ export const adminDataService = {
             logAction('delete_faq', `A șters FAQ: "${faqToDelete.question.substring(0, 20)}..."`);
         }
     },
+    
+    // CMS Content Overrides
+    getContentOverrides: (): Record<string, string> => getData<Record<string, string>>('admin_content_overrides', {}),
+    getSingleContent: (id: string, fallback: string): string => {
+        const overrides = adminDataService.getContentOverrides();
+        return overrides[id] || fallback;
+    },
+    setContentOverride: (id: string, content: string): void => {
+        const overrides = adminDataService.getContentOverrides();
+        overrides[id] = content;
+        setData('admin_content_overrides', overrides);
+        logAction('update_content', `A actualizat conținutul pentru elementul: ${id}`);
+    },
+
+    // CMS Testimonials
+    getTestimonials: (): Testimonial[] => getData<Testimonial[]>('admin_testimonials', initialTestimonials),
+    updateTestimonials: (testimonials: Testimonial[]): void => {
+        setData('admin_testimonials', testimonials);
+        logAction('update_testimonials', `A actualizat lista de testimoniale.`);
+    },
+
+    // CMS Partners
+    getPartners: (): { id: string, logoUrl: string, name: string }[] => getData<any[]>('admin_partners', initialPartners),
+    updatePartners: (partners: { id: string, logoUrl: string, name: string }[]): void => {
+        setData('admin_partners', partners);
+        logAction('update_partners', `A actualizat lista de parteneri.`);
+    },
 
     // Audit Log
-    getLogs: (): AuditLogEntry[] => getData<AuditLogEntry>('admin_audit_log', []),
+    getLogs: (): AuditLogEntry[] => getData<AuditLogEntry[]>('admin_audit_log', []),
 };

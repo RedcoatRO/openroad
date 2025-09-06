@@ -1,3 +1,4 @@
+
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -13,25 +14,20 @@ const TwoFactorAuthPage: React.FC = () => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
-    // Efect combinat pentru a gestiona navigarea:
-    // 1. Dacă login-ul este complet (starea e 'loggedIn'), navighează la panoul de administrare.
-    // 2. Dacă utilizatorul ajunge aici fără a fi trecut de primul pas (starea nu e 'requires2FA'),
-    //    este redirecționat la pagina de login.
+    // Redirecționează utilizatorul la login dacă nu a parcurs primul pas
     useEffect(() => {
-        if (auth?.authState === 'loggedIn') {
-            navigate('/admin');
-            return; // Oprește executarea efectului pentru a evita redirecționări multiple
-        }
         if (auth?.authState !== 'requires2FA') {
             navigate('/admin/login');
         }
-    }, [auth?.authState, navigate]);
+    }, [auth, navigate]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        // Doar încercăm să verificăm codul. Navigarea este gestionată de useEffect.
-        if (!(auth && auth.verify2FA(code))) {
+        if (auth && auth.verify2FA(code)) {
+            // Dacă codul este corect, navighează la panoul de administrare
+            navigate('/admin');
+        } else {
             setError('Codul de verificare este incorect.');
         }
     };
@@ -42,7 +38,7 @@ const TwoFactorAuthPage: React.FC = () => {
                 <div className="text-center">
                     <Logo />
                     <h1 className="mt-4 text-2xl font-bold text-text-main">Verificare 2FA</h1>
-                    <p className="mt-2 text-sm text-muted">Introdu codul din aplicația de autentificare (Hint: 086420).</p>
+                    <p className="mt-2 text-sm text-muted">Introdu codul din aplicația de autentificare (Hint: 123456).</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>

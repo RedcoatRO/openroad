@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Using a general props type for simplicity
@@ -202,6 +203,6 @@ export const LineChartIcon: React.FC<IconProps> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
 );
 
-export const HomeIcon: React.FC<IconProps> = (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+export const PaletteIcon: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="5" r="3"/><path d="M6.5 12.5c0 .7.3 1.4.9 1.8l3.6 2.7c.6.4 1.5.4 2.1 0l3.6-2.7c.5-.4.9-1.1.9-1.8v-1.5c0-.7-.3-1.4-.9-1.8L13 7.7c-.6-.4-1.5-.4-2.1 0L7.4 9.2c-.5.4-.9 1.1-.9 1.8Z"/><path d="m14 22 4-4"/><path d="M6 18h4"/></svg>
 );
