@@ -1,0 +1,25 @@
+{
+  "short_name": "FleetLease",
+  "name": "FleetLease Pro",
+  "description": "Partenerul tău pentru mobilitate predictibilă și eficientă.",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0B5FFF",
+  "background_color": "#FFFFFF",
+  "scope": "/",
+  "orientation": "portrait-primary"
+}

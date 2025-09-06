@@ -1,0 +1,178 @@
+
+import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, RequestStatus } from '../types';
+import { vehiclesData as initialVehiclesData } from '../data/vehicles';
+
+/**
+ * Serviciu de date simulat care utilizează localStorage pentru a persista datele
+ * panoului de administrare.
+ */
+
+// --- Date Inițiale (Seed Data) ---
+const initialUsers: User[] = [
+    { id: 1, name: 'Admin Principal', email: 'admin@fleetlease.pro', role: 'Admin', lastLogin: new Date().toISOString() },
+    { id: 2, name: 'Ana Popescu', email: 'ana.p@fleetlease.pro', role: 'Manager Vânzări', lastLogin: new Date().toISOString() },
+    { id: 3, name: 'Mihai Ionescu', email: 'mihai.i@fleetlease.pro', role: 'Operator', lastLogin: new Date().toISOString() },
+];
+
+const initialFAQs: FAQItem[] = [
+    { id: 1, question: "Care este durata minimă a contractului?", answer: "Durata minimă este de 12 luni, cu opțiuni flexibile de extindere până la 48 de luni." },
+    { id: 2, question: "Ce costuri sunt incluse în rata lunară?", answer: "Rata lunară include RCA, CASCO, mentenanța completă (revizii și reparații), taxele (rovinieta) și un vehicul de înlocuire în caz de imobilizare." }
+];
+
+
+// --- Funcții Helper ---
+
+function getData<T>(key: string, defaultValue: T[]): T[] {
+    try {
+        const data = localStorage.getItem(key);
+        if (data) {
+            return JSON.parse(data);
+        } else {
+            localStorage.setItem(key, JSON.stringify(defaultValue));
+            return defaultValue;
+        }
+    } catch (error) {
+        console.error(`Failed to read ${key} from localStorage`, error);
+        return defaultValue;
+    }
+}
+
+function setData<T>(key: string, data: T[]): void {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+        console.error(`Failed to write ${key} to localStorage`, error);
+    }
+}
+
+// Funcție pentru a adăuga o intrare în log
+function logAction(action: string, details: string): void {
+    const logs = getData<AuditLogEntry>('admin_audit_log', []);
+    const newLog: AuditLogEntry = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        user: 'Admin (Simulat)', // Într-o aplicație reală, s-ar lua user-ul logat
+        action,
+        details,
+    };
+    setData('admin_audit_log', [newLog, ...logs]);
+}
+
+// --- API-ul Serviciului ---
+
+export const adminDataService = {
+    // Vehicule
+    getVehicles: (): Vehicle[] => getData<Vehicle>('admin_vehicles', initialVehiclesData),
+    updateVehicle: (updatedVehicle: Vehicle): void => {
+        const vehicles = adminDataService.getVehicles();
+        const index = vehicles.findIndex(v => v.id === updatedVehicle.id);
+        if (index !== -1) {
+            vehicles[index] = updatedVehicle;
+            setData('admin_vehicles', vehicles);
+            logAction('update_vehicle', `A actualizat vehiculul: ${updatedVehicle.model}`);
+        }
+    },
+    addVehicle: (newVehicleData: Omit<Vehicle, 'id'>): void => {
+        const vehicles = adminDataService.getVehicles();
+        const newVehicle: Vehicle = { ...newVehicleData, id: Date.now() };
+        setData('admin_vehicles', [...vehicles, newVehicle]);
+        logAction('add_vehicle', `A adăugat vehiculul: ${newVehicle.model}`);
+    },
+    deleteVehicle: (vehicleId: number): void => {
+        const vehicles = adminDataService.getVehicles();
+        const vehicleToDelete = vehicles.find(v => v.id === vehicleId);
+        setData('admin_vehicles', vehicles.filter(v => v.id !== vehicleId));
+        if (vehicleToDelete) {
+            logAction('delete_vehicle', `A șters vehiculul: ${vehicleToDelete.model}`);
+        }
+    },
+
+    // Solicitări
+    getRequests: (): QuoteRequest[] => getData<QuoteRequest>('admin_requests', []),
+    addRequest: (newRequestData: Omit<QuoteRequest, 'id' | 'date' | 'status'>): void => {
+        const requests = adminDataService.getRequests();
+        const newRequest: QuoteRequest = { ...newRequestData, id: Date.now().toString(), date: new Date().toISOString(), status: 'Nouă' };
+        setData('admin_requests', [newRequest, ...requests]);
+        logAction('new_request', `Solicitare nouă de la: ${newRequestData.companyName}`);
+    },
+    updateRequestStatus: (requestId: string, status: RequestStatus): void => {
+        const requests = adminDataService.getRequests();
+        const index = requests.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+            requests[index].status = status;
+            setData('admin_requests', requests);
+            logAction('update_request_status', `Statusul solicitării de la ${requests[index].companyName} a fost schimbat în "${status}"`);
+        }
+    },
+
+    // Clienți (derivați din solicitări)
+    getClients: (): Client[] => {
+        const requests = adminDataService.getRequests();
+        const clientsMap = new Map<string, Client>();
+
+        requests.forEach(req => {
+            if (!clientsMap.has(req.cui)) {
+                clientsMap.set(req.cui, {
+                    companyName: req.companyName,
+                    cui: req.cui,
+                    contactPerson: req.contactPerson,
+                    email: req.email,
+                    phone: req.phone,
+                    requests: []
+                });
+            }
+            clientsMap.get(req.cui)!.requests.push(req);
+        });
+
+        return Array.from(clientsMap.values());
+    },
+
+    // Utilizatori
+    getUsers: (): User[] => getData<User>('admin_users', initialUsers),
+    updateUser: (updatedUser: User): void => {
+        const users = adminDataService.getUsers();
+        const index = users.findIndex(u => u.id === updatedUser.id);
+        if (index !== -1) {
+            users[index] = updatedUser;
+            setData('admin_users', users);
+            logAction('update_user', `A actualizat utilizatorul: ${updatedUser.name}`);
+        }
+    },
+    deleteUser: (userId: number): void => {
+        const users = adminDataService.getUsers();
+        const userToDelete = users.find(u => u.id === userId);
+        setData('admin_users', users.filter(u => u.id !== userId));
+        if (userToDelete) {
+            logAction('delete_user', `A șters utilizatorul: ${userToDelete.name}`);
+        }
+    },
+
+    // CMS (FAQ)
+    getFAQs: (): FAQItem[] => getData<FAQItem>('admin_faqs', initialFAQs),
+    updateFAQ: (updatedFAQ: FAQItem): void => {
+        const faqs = adminDataService.getFAQs();
+        const index = faqs.findIndex(f => f.id === updatedFAQ.id);
+        if (index !== -1) {
+            faqs[index] = updatedFAQ;
+            setData('admin_faqs', faqs);
+            logAction('update_faq', `A actualizat FAQ: "${updatedFAQ.question.substring(0, 20)}..."`);
+        }
+    },
+    addFAQ: (newFAQData: Omit<FAQItem, 'id'>): void => {
+        const faqs = adminDataService.getFAQs();
+        const newFAQ: FAQItem = { ...newFAQData, id: Date.now() };
+        setData('admin_faqs', [...faqs, newFAQ]);
+        logAction('add_faq', `A adăugat FAQ: "${newFAQ.question.substring(0, 20)}..."`);
+    },
+    deleteFAQ: (faqId: number): void => {
+        const faqs = adminDataService.getFAQs();
+        const faqToDelete = faqs.find(f => f.id === faqId);
+        setData('admin_faqs', faqs.filter(f => f.id !== faqId));
+        if (faqToDelete) {
+            logAction('delete_faq', `A șters FAQ: "${faqToDelete.question.substring(0, 20)}..."`);
+        }
+    },
+
+    // Audit Log
+    getLogs: (): AuditLogEntry[] => getData<AuditLogEntry>('admin_audit_log', []),
+};

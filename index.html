@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Antete de Securitate Adăugate -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://aistudiocdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://picsum.photos; frame-src 'self' https://www.google.com; object-src 'none'; form-action 'self'; base-uri 'self';">
+    <meta name="X-Content-Type-Options" content="nosniff">
+    <meta name="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
+    <title>FleetLease Pro</title>
+    
+    <!-- PWA Manifest & Theme -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0B5FFF">
+    <link rel="apple-touch-icon" href="/logo192.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Am activat dark mode pe bază de clasă
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              primary: '#0B5FFF',
+              'primary-600': '#0A4DE0',
+              accent: '#22C55E',
+              'text-main': '#111827',
+              muted: '#6B7280',
+              'bg-main': '#FFFFFF',
+              'bg-alt': '#F3F4F6',
+              'bg-admin-alt': '#F9FAFB',
+              border: '#E5E7EB',
+            },
+            borderRadius: {
+              'card': '16px',
+              'btn': '12px',
+            },
+            boxShadow: {
+              'soft': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+              'md': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .printable-area, .printable-area * {
+          visibility: visible;
+        }
+        .printable-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print {
+          display: none;
+        }
+      }
+    </style>
+    <script type="module" src="https://unpkg.com/lucide-react@0.378.0/dist/lucide-react.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.8.2",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.1.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-bg-main dark:bg-gray-900">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
