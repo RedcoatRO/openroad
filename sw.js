@@ -1,6 +1,6 @@
-// sw.js - Service Worker for FleetLease Pro PWA
+// sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'fleetlease-pro-cache-v1';
+const CACHE_NAME = 'openroad-leasing-cache-v1';
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 // Acestea asigură că aplicația se încarcă rapid și funcționează offline.
@@ -15,7 +15,6 @@ const ASSETS_TO_CACHE = [
   '/logo512.png',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://unpkg.com/lucide-react@0.378.0/dist/lucide-react.js',
   'https://unpkg.com/recharts/umd/Recharts.min.js'
 ];
 

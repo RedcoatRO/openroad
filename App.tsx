@@ -74,9 +74,9 @@ const MainLayout: React.FC = () => {
     const organizationSchema = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "FleetLease Pro",
-        "url": "https://www.fleetlease.pro",
-        "logo": "https://www.fleetlease.pro/logo.png",
+        "name": "Open Road Leasing",
+        "url": "https://www.openroadleasing.com",
+        "logo": "https://www.openroadleasing.com/logo.png",
         "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+40-744-000-000",

@@ -15,7 +15,7 @@ const ServiceLeasingPage: React.FC = () => {
         "serviceType": "Leasing Operațional Auto",
         "provider": {
             "@type": "Organization",
-            "name": "FleetLease Pro"
+            "name": "Open Road Leasing"
         },
         "description": "Soluția completă care externalizează toate riscurile și costurile administrative ale flotei, de la achiziție și mentenanță, la asigurări și management.",
         "areaServed": {

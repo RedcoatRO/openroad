@@ -27,8 +27,8 @@ const InteractiveMap: React.FC = () => {
                 style={{ border: 0, ...iframeStyle }}
                 allowFullScreen={true}
                 loading="lazy"
-                title="Locație FleetLease Pro"
-                aria-label="Harta cu locația sediului FleetLease Pro"
+                title="Locație Open Road Leasing"
+                aria-label="Harta cu locația sediului Open Road Leasing"
             ></iframe>
         </div>
     );

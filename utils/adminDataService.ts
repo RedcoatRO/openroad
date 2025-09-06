@@ -18,9 +18,9 @@ interface UploadedImage {
 
 // --- Date Inițiale (Seed Data) ---
 const initialUsers: User[] = [
-    { id: 1, name: 'Admin Principal', email: 'admin@fleetlease.pro', role: 'Admin', lastLogin: new Date().toISOString() },
-    { id: 2, name: 'Ana Popescu', email: 'ana.p@fleetlease.pro', role: 'Manager Vânzări', lastLogin: new Date().toISOString() },
-    { id: 3, name: 'Mihai Ionescu', email: 'mihai.i@fleetlease.pro', role: 'Operator', lastLogin: new Date().toISOString() },
+    { id: 1, name: 'Admin Principal', email: 'admin@openroadleasing.com', role: 'Admin', lastLogin: new Date().toISOString() },
+    { id: 2, name: 'Ana Popescu', email: 'ana.p@openroadleasing.com', role: 'Manager Vânzări', lastLogin: new Date().toISOString() },
+    { id: 3, name: 'Mihai Ionescu', email: 'mihai.i@openroadleasing.com', role: 'Operator', lastLogin: new Date().toISOString() },
 ];
 
 const initialFAQs: FAQItem[] = [

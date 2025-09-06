@@ -5,9 +5,9 @@ import React from 'react';
 type IconProps = React.SVGProps<SVGSVGElement>;
 
 export const Logo: React.FC<IconProps> = (props) => (
-  <svg width="140" height="32" viewBox="0 0 140 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <svg width="190" height="32" viewBox="0 0 190 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
     <text x="0" y="24" fontFamily="Inter, sans-serif" fontSize="22" fontWeight="bold" className="fill-primary">
-      FleetLease <tspan className="fill-muted dark:fill-gray-400">Pro</tspan>
+      Open Road <tspan className="fill-muted dark:fill-gray-400">Leasing</tspan>
     </text>
   </svg>
 );

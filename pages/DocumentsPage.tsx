@@ -12,7 +12,7 @@ const documentsData = [
     },
     {
         title: "Termeni și Condiții Generale",
-        description: "Documentul complet care guvernează termenii și condițiile serviciilor FleetLease Pro.",
+        description: "Documentul complet care guvernează termenii și condițiile serviciilor Open Road Leasing.",
         fileUrl: "#download-terms", // Placeholder
     },
     {

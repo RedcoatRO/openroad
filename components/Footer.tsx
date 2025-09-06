@@ -35,7 +35,7 @@ const Footer: React.FC = () => {
                         <ul className="space-y-3 text-sm">
                             <li className="flex items-start">
                                 <MailIcon className="w-4 h-4 mr-3 mt-1 text-primary flex-shrink-0" />
-                                <a href="mailto:office@fleetlease.pro" className="hover:text-primary transition-colors">office@fleetlease.pro</a>
+                                <a href="mailto:office@openroadleasing.com" className="hover:text-primary transition-colors">office@openroadleasing.com</a>
                             </li>
                             <li className="flex items-start">
                                 <PhoneIcon className="w-4 h-4 mr-3 mt-1 text-primary flex-shrink-0" />
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
                 </div>
 
                 <div className="border-t border-border dark:border-gray-700 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center text-xs">
-                    <p>&copy; {new Date().getFullYear()} FleetLease Pro. Toate drepturile rezervate.</p>
+                    <p>&copy; {new Date().getFullYear()} Open Road Leasing. Toate drepturile rezervate.</p>
                     <div className="flex items-center space-x-4 mt-4 sm:mt-0">
                         <a href="#" className="hover:text-primary transition-colors">Termeni și condiții</a>
                         <span className="text-gray-400 dark:text-gray-600">|</span>

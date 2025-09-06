@@ -54,7 +54,7 @@ const BenefitsPage: React.FC = () => {
              <section className="py-20">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold text-text-main dark:text-white">Beneficii Financiare și Operaționale</h2>
-                    <p className="mt-4 text-muted dark:text-gray-400">Această secțiune va detalia avantajele parteneriatului cu FleetLease Pro.</p>
+                    <p className="mt-4 text-muted dark:text-gray-400">Această secțiune va detalia avantajele parteneriatului cu Open Road Leasing.</p>
                 </div>
             </section>
         </>
