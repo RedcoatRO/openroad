@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Header from './components/Header';
@@ -84,53 +85,80 @@ const MainLayout: React.FC = () => {
     
     // Script to enable visual editing when inside an iframe
     useEffect(() => {
+        // Verifică dacă fereastra curentă este într-un iframe. Scriptul rulează doar în acest caz.
         const isInsideIframe = window.self !== window.top;
         if (!isInsideIframe) return;
 
+        // Handler pentru mesajele primite de la fereastra părinte (panoul de admin)
         const handleMessage = (event: MessageEvent) => {
             const { type, payload } = event.data;
 
+            // Când primește mesajul de activare a modului de editare
             if (type === 'FL_PRO_EDIT_MODE') {
                 document.body.classList.add('visual-editor-active');
-                // Add styles for highlighting editable elements
+                
+                // Injectează stiluri CSS pentru a evidenția elementele editabile
                 const style = document.createElement('style');
                 style.id = 'visual-editor-styles';
                 style.innerHTML = `
                     .visual-editor-active [data-editable-id] {
-                        outline: 2px dashed #0B5FFF;
-                        outline-offset: 4px;
-                        cursor: pointer;
+                        outline: 2px dashed #0B5FFF !important;
+                        outline-offset: 4px !important;
+                        cursor: pointer !important;
                         transition: all 0.2s ease-in-out;
                     }
                     .visual-editor-active [data-editable-id]:hover {
-                        outline-style: solid;
-                        background-color: rgba(11, 95, 255, 0.1);
+                        outline-style: solid !important;
+                        background-color: rgba(11, 95, 255, 0.1) !important;
                     }
                 `;
                 document.head.appendChild(style);
 
-                // Add click listeners
+                // Adaugă event listenere de click pe toate elementele editabile
                 document.querySelectorAll('[data-editable-id]').forEach(el => {
                     el.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
+
                         const id = el.getAttribute('data-editable-id');
-                        const isImage = el.tagName === 'IMG' || (el instanceof HTMLElement && el.style.backgroundImage);
+                        if (!id) return;
+
+                        // Logică robustă pentru a determina tipul și conținutul elementului
+                        const isImageTag = el.tagName === 'IMG';
+                        const isBgImage = el instanceof HTMLElement && el.style.backgroundImage && el.style.backgroundImage !== 'none';
+                        const isImage = isImageTag || isBgImage;
+
+                        let content: string | null = '';
+                        let elementType: 'text' | 'image';
+
+                        if (isImage) {
+                            elementType = 'image';
+                            if (isImageTag) {
+                                content = (el as HTMLImageElement).src;
+                            } else { // Este o imagine de fundal
+                                const bgImage = (el as HTMLElement).style.backgroundImage;
+                                // Extrage URL-ul din proprietatea CSS 'url(...)', indiferent de ghilimele
+                                const match = bgImage.match(/url\((['"])?(.*?)\1\)/);
+                                content = match ? match[2] : '';
+                            }
+                        } else {
+                            elementType = 'text';
+                            content = el.textContent;
+                        }
                         
+                        // Trimite un mesaj către panoul de admin cu detaliile elementului pe care s-a dat click
                         window.top?.postMessage({
                             type: 'FL_PRO_ELEMENT_CLICKED',
-                            payload: {
-                                id: id,
-                                type: isImage ? 'image' : 'text',
-                                content: isImage ? (el as HTMLImageElement).src || (el as HTMLElement).style.backgroundImage : el.textContent
-                            }
+                            payload: { id, type: elementType, content }
                         }, '*');
                     });
                 });
+            // Când primește un mesaj de actualizare a conținutului (după o salvare în admin)
             } else if (type === 'FL_PRO_UPDATE_CONTENT') {
                 const { id, content } = payload;
                 const element = document.querySelector(`[data-editable-id="${id}"]`);
                 if (element) {
+                    // Aplică modificarea în timp real, fără a reîncărca pagina
                     if (element.tagName === 'IMG') {
                         (element as HTMLImageElement).src = content;
                     } else if (element instanceof HTMLElement && element.style.backgroundImage) {
@@ -144,14 +172,16 @@ const MainLayout: React.FC = () => {
 
         window.addEventListener('message', handleMessage);
 
-        // Notify parent that iframe is ready to receive messages
+        // Notifică panoul de admin că iframe-ul este gata să primească comenzi
         window.top?.postMessage({ type: 'FL_PRO_IFRAME_READY' }, '*');
 
+        // Funcție de curățare la demontarea componentei
         return () => {
             window.removeEventListener('message', handleMessage);
             document.body.classList.remove('visual-editor-active');
             const style = document.getElementById('visual-editor-styles');
             if (style) style.remove();
+            // Aici ar trebui eliminat și event listener-ul de pe elemente, dar la părăsirea paginii nu mai e necesar
         };
     }, []);
 
