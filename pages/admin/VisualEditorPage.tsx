@@ -4,6 +4,7 @@ import { adminDataService } from '../../utils/adminDataService';
 import type { Testimonial } from '../../types';
 import { PaletteIcon, XIcon } from '../../components/icons';
 import Image from '../../components/Image';
+import { compressImage } from '../../utils/imageCompressor'; // Importăm noul utilitar
 
 // Componenta pentru panoul de editare a unui element (text sau imagine)
 const EditPanel: React.FC<{
@@ -12,26 +13,47 @@ const EditPanel: React.FC<{
     onClose: () => void;
 }> = ({ element, onSave, onClose }) => {
     const [content, setContent] = useState(element.content);
+    const [isLoading, setIsLoading] = useState(false); // Stare pentru a indica procesarea imaginii
+    const [error, setError] = useState<string | null>(null); // Stare pentru a afișa erori
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Actualizează starea internă dacă elementul selectat se schimbă
     useEffect(() => {
         setContent(element.content);
+        setError(null); // Resetează eroarea la schimbarea elementului
     }, [element]);
 
     const handleSave = () => {
+        if (error) { // Nu permite salvarea dacă există o eroare de la procesarea imaginii
+            alert("Vă rugăm remediați eroarea înainte de a salva.");
+            return;
+        }
         onSave(element.id, content);
     };
 
-    // Gestionează încărcarea unei imagini noi și o convertește în Base64
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Gestionează încărcarea unei imagini noi, o comprimă și o validează
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setContent(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setError(null); // Resetează erorile anterioare
+            setIsLoading(true); // Începe starea de încărcare
+
+            try {
+                // Apelează funcția de compresie din utilitar
+                // Setează o limită sigură de 1.5MB pentru localStorage și o rezoluție maximă
+                const compressedDataUrl = await compressImage(file, {
+                    maxSizeMB: 1.5,
+                    maxWidthOrHeight: 1920,
+                    quality: 0.8,
+                });
+                // Actualizează preview-ul cu imaginea comprimată
+                setContent(compressedDataUrl);
+            } catch (err: any) {
+                // Prinde erorile (ex: imaginea e prea mare) și le afișează utilizatorului
+                setError(err.message || 'A apărut o eroare la procesarea imaginii.');
+            } finally {
+                setIsLoading(false); // Oprește starea de încărcare
+            }
         }
     };
 
@@ -50,12 +72,37 @@ const EditPanel: React.FC<{
                 />
             ) : (
                 <div className="space-y-2">
-                    <img src={content} alt="Preview" className="max-h-40 rounded-md border" />
-                    <button onClick={() => fileInputRef.current?.click()} className="w-full text-sm bg-gray-200 py-2 rounded-md hover:bg-gray-300">Încarcă imagine nouă</button>
+                    <img src={content} alt="Preview" className="max-h-40 w-full object-contain rounded-md border" />
+                    
+                    {/* Indicator de încărcare/procesare */}
+                    {isLoading && (
+                        <div className="text-center text-sm text-muted p-2">Se procesează imaginea...</div>
+                    )}
+
+                    {/* Mesaj de eroare */}
+                    {error && (
+                        <div className="text-center p-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
+                            {error}
+                        </div>
+                    )}
+
+                    <button 
+                        onClick={() => fileInputRef.current?.click()} 
+                        disabled={isLoading}
+                        className="w-full text-sm bg-gray-200 py-2 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                    >
+                        {isLoading ? 'Se încarcă...' : 'Încarcă imagine nouă'}
+                    </button>
                     <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
                 </div>
             )}
-            <button onClick={handleSave} className="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-primary-600">Salvează</button>
+            <button 
+                onClick={handleSave} 
+                disabled={isLoading || !!error}
+                className="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-primary-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+                Salvează
+            </button>
         </div>
     );
 };
