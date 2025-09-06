@@ -1,16 +1,18 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Logo, UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon } from '../icons'; // Am adăugat iconițe noi
+import { Logo, UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon } from '../icons'; // Am adăugat iconițe noi
 
 interface SidebarProps {
     isSidebarOpen: boolean;
     setSidebarOpen: (isOpen: boolean) => void;
 }
 
-// Am actualizat item-urile de navigare pentru a reflecta noile pagini
+// Am adăugat un link către site-ul public și am structurat item-urile
+// pentru a gestiona mai bine starea 'activă' a link-ului.
 const navItems = [
-    { to: '/admin', label: 'Panou general' },
+    { to: '/', label: 'Mergi la Site', icon: <ExternalLinkIcon className="w-4 h-4 mr-3" />, end: true },
+    { to: '/admin', label: 'Panou general', end: true },
     { to: '/admin/autoturisme', label: 'Autoturisme' },
     { to: '/admin/solicitari', label: 'Solicitări' },
     { to: '/admin/clienti', label: 'Clienți', icon: <UsersIcon className="w-4 h-4 mr-3" /> },
@@ -36,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                             <li key={item.to}>
                                 <NavLink 
                                     to={item.to}
-                                    end={item.to === '/admin'}
+                                    end={item.end} // Folosim proprietatea 'end' pentru a asigura potrivirea exactă a rutei
                                     className={({ isActive }) => `flex items-center px-4 py-2.5 my-1 text-sm font-medium rounded-lg transition-colors ${isActive ? 'bg-primary text-white' : 'text-muted hover:bg-gray-100 hover:text-text-main'}`}
                                     onClick={() => setSidebarOpen(false)}
                                 >

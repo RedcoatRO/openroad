@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, ReactNode, useCallback, useMemo } from 'react';
 
 // Tipul pentru stările posibile de autentificare
 type AuthState = 'loggedOut' | 'requires2FA' | 'loggedIn';
@@ -36,34 +36,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [authState, setAuthState] = useState<AuthState>(getInitialAuthState);
 
     // Funcție centralizată pentru a actualiza starea și a o persista
-    const updateAuthState = (newState: AuthState) => {
+    const updateAuthState = useCallback((newState: AuthState) => {
         setAuthState(newState);
         try {
             sessionStorage.setItem('authState', newState);
         } catch (e) {
             console.error('Nu s-a putut scrie starea de autentificare în session storage', e);
         }
-    };
+    }, []);
 
     // Funcția de login (Pasul 1)
     const login = useCallback((user: string, pass: string): boolean => {
-        // Simulare validare username/parolă. Într-o aplicație reală, s-ar face un request la server.
-        if (user === 'admin' && pass === 'password123') {
+        // Simulare validare username/parolă cu noile credențiale.
+        if (user === 'lucian' && pass === '_rent_a_car') {
             updateAuthState('requires2FA'); // Trecem la starea de așteptare 2FA
             return true;
         }
         return false;
-    }, []);
+    }, [updateAuthState]);
 
     // Funcția de verificare a codului 2FA (Pasul 2)
     const verify2FA = useCallback((code: string): boolean => {
-        // Simulare validare cod 2FA. Codul corect este hardcodat.
-        if (code === '123456') {
+        // Simulare validare cod 2FA cu noul cod.
+        if (code === '086420') {
             updateAuthState('loggedIn'); // Utilizatorul este complet autentificat
             return true;
         }
         return false;
-    }, []);
+    }, [updateAuthState]);
 
     // Funcția de logout
     const logout = useCallback(() => {
@@ -74,10 +74,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (e) {
             console.error('Nu s-a putut șterge starea de autentificare din session storage', e);
         }
-    }, []);
+    }, [updateAuthState]);
+    
+    // Memorăm valoarea contextului pentru a preveni re-render-uri inutile
+    // la componentele consumatoare, atunci când starea nu se schimbă.
+    const value = useMemo(() => ({
+        authState,
+        login,
+        verify2FA,
+        logout
+    }), [authState, login, verify2FA, logout]);
 
     return (
-        <AuthContext.Provider value={{ authState, login, verify2FA, logout }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

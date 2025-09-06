@@ -38,7 +38,7 @@ const TwoFactorAuthPage: React.FC = () => {
                 <div className="text-center">
                     <Logo />
                     <h1 className="mt-4 text-2xl font-bold text-text-main">Verificare 2FA</h1>
-                    <p className="mt-2 text-sm text-muted">Introdu codul din aplicația de autentificare (Hint: 123456).</p>
+                    <p className="mt-2 text-sm text-muted">Introdu codul din aplicația de autentificare.</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>

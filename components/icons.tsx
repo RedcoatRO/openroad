@@ -206,3 +206,7 @@ export const LineChartIcon: React.FC<IconProps> = (props) => (
 export const PaletteIcon: React.FC<IconProps> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="5" r="3"/><path d="M6.5 12.5c0 .7.3 1.4.9 1.8l3.6 2.7c.6.4 1.5.4 2.1 0l3.6-2.7c.5-.4.9-1.1.9-1.8v-1.5c0-.7-.3-1.4-.9-1.8L13 7.7c-.6-.4-1.5-.4-2.1 0L7.4 9.2c-.5.4-.9 1.1-.9 1.8Z"/><path d="m14 22 4-4"/><path d="M6 18h4"/></svg>
 );
+
+export const ExternalLinkIcon: React.FC<IconProps> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+);
