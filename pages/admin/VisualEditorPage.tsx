@@ -1,10 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Testimonial } from '../../types';
 import { PaletteIcon, XIcon } from '../../components/icons';
-import Image from '../../components/Image';
-import { compressImage } from '../../utils/imageCompressor'; // Importăm noul utilitar
 
 // Componenta pentru panoul de editare a unui element (text sau imagine)
 const EditPanel: React.FC<{
@@ -12,49 +9,17 @@ const EditPanel: React.FC<{
     onSave: (id: string, newContent: string) => void;
     onClose: () => void;
 }> = ({ element, onSave, onClose }) => {
+    // Starea internă pentru conținutul elementului (text sau URL imagine)
     const [content, setContent] = useState(element.content);
-    const [isLoading, setIsLoading] = useState(false); // Stare pentru a indica procesarea imaginii
-    const [error, setError] = useState<string | null>(null); // Stare pentru a afișa erori
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Actualizează starea internă dacă elementul selectat se schimbă
     useEffect(() => {
         setContent(element.content);
-        setError(null); // Resetează eroarea la schimbarea elementului
     }, [element]);
 
     const handleSave = () => {
-        if (error) { // Nu permite salvarea dacă există o eroare de la procesarea imaginii
-            alert("Vă rugăm remediați eroarea înainte de a salva.");
-            return;
-        }
+        // Salvează noul conținut (text sau URL)
         onSave(element.id, content);
-    };
-
-    // Gestionează încărcarea unei imagini noi, o comprimă și o validează
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setError(null); // Resetează erorile anterioare
-            setIsLoading(true); // Începe starea de încărcare
-
-            try {
-                // Apelează funcția de compresie din utilitar
-                // Setează o limită sigură de 1.5MB pentru localStorage și o rezoluție maximă
-                const compressedDataUrl = await compressImage(file, {
-                    maxSizeMB: 1.5,
-                    maxWidthOrHeight: 1920,
-                    quality: 0.8,
-                });
-                // Actualizează preview-ul cu imaginea comprimată
-                setContent(compressedDataUrl);
-            } catch (err: any) {
-                // Prinde erorile (ex: imaginea e prea mare) și le afișează utilizatorului
-                setError(err.message || 'A apărut o eroare la procesarea imaginii.');
-            } finally {
-                setIsLoading(false); // Oprește starea de încărcare
-            }
-        }
     };
 
     return (
@@ -64,6 +29,7 @@ const EditPanel: React.FC<{
                 <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full"><XIcon className="w-4 h-4"/></button>
             </div>
             {element.type === 'text' ? (
+                // Câmp de text pentru editarea textelor
                 <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -71,41 +37,38 @@ const EditPanel: React.FC<{
                     className="w-full p-2 border rounded-md text-sm"
                 />
             ) : (
+                // Interfață nouă pentru editarea imaginilor prin URL
                 <div className="space-y-2">
-                    <img src={content} alt="Preview" className="max-h-40 w-full object-contain rounded-md border" />
-                    
-                    {/* Indicator de încărcare/procesare */}
-                    {isLoading && (
-                        <div className="text-center text-sm text-muted p-2">Se procesează imaginea...</div>
-                    )}
-
-                    {/* Mesaj de eroare */}
-                    {error && (
-                        <div className="text-center p-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
-                            {error}
+                    <label className="block text-xs font-medium text-gray-600">URL Imagine</label>
+                    <textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        rows={3}
+                        className="w-full p-2 border rounded-md text-sm font-mono"
+                        placeholder="https://exemplu.com/imagine.jpg"
+                    />
+                    <p className="text-xs text-muted">
+                        Încarcă imaginea pe un serviciu extern (ex: Imgur, Cloudinary) și lipește link-ul direct aici.
+                    </p>
+                    {/* Previzualizare imagine, dacă URL-ul este valid */}
+                    {content && (
+                        <div>
+                            <p className="text-xs font-medium text-gray-600 mb-1">Previzualizare:</p>
+                            <img src={content} alt="Previzualizare" className="max-h-24 w-full object-contain rounded-md border bg-gray-50" />
                         </div>
                     )}
-
-                    <button 
-                        onClick={() => fileInputRef.current?.click()} 
-                        disabled={isLoading}
-                        className="w-full text-sm bg-gray-200 py-2 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                    >
-                        {isLoading ? 'Se încarcă...' : 'Încarcă imagine nouă'}
-                    </button>
-                    <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
                 </div>
             )}
             <button 
                 onClick={handleSave} 
-                disabled={isLoading || !!error}
-                className="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-primary-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-primary-600"
             >
                 Salvează
             </button>
         </div>
     );
 };
+
 
 // Componenta pentru managementul testimonialelor
 const TestimonialManager: React.FC<{ onContentUpdate: () => void }> = ({ onContentUpdate }) => {
