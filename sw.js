@@ -1,6 +1,6 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v2'; // Bumped cache version
+const CACHE_NAME = 'openroad-leasing-cache-v2'; // Versiune cache
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 const APP_SHELL_FILES = [
@@ -86,11 +86,8 @@ const CDN_FILES_TO_CACHE = [
 
 const ASSETS_TO_CACHE = [...APP_SHELL_FILES, ...CDN_FILES_TO_CACHE];
 
-
-// Evenimentul 'install': Se declanșează la prima vizită sau la o actualizare a service worker-ului.
 self.addEventListener('install', event => {
   console.log('Service Worker: Se instalează...');
-  // Așteaptă până când toate resursele esențiale sunt adăugate în cache.
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -106,12 +103,9 @@ self.addEventListener('install', event => {
         console.error('Eroare la adăugarea în cache în timpul instalării:', error);
       })
   );
-  // Forțează noul service worker să devină activ imediat.
   self.skipWaiting();
 });
 
-// Evenimentul 'activate': Se declanșează după instalare.
-// Este momentul potrivit pentru a curăța cache-urile vechi.
 self.addEventListener('activate', event => {
   console.log('Service Worker: Se activează...');
   event.waitUntil(
@@ -126,30 +120,63 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  // Preia controlul paginilor deschise imediat.
   return self.clients.claim();
 });
 
-// Evenimentul 'fetch': Se declanșează pentru fiecare cerere de rețea făcută de pagină.
-// Implementează o strategie "Stale-While-Revalidate" pentru un echilibru bun între viteză și actualizări.
+// Evenimentul 'fetch' actualizat cu logica diferențiată
 self.addEventListener('fetch', event => {
-  // Ignorăm cererile care nu sunt de tip GET sau care sunt pentru extensii de browser.
-  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
+  const { request } = event;
+
+  // Ignorăm cererile care nu sunt GET sau cele pentru extensii de browser
+  if (request.method !== 'GET' || request.url.startsWith('chrome-extension://')) {
     return;
   }
   
-  event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(event.request).then(cachedResponse => {
-        const fetchedResponsePromise = fetch(event.request).then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
-             cache.put(event.request, networkResponse.clone());
+  // Verificăm dacă cererea este pentru date din Firestore
+  const isFirestoreRequest = request.url.includes('firestore.googleapis.com');
+
+  if (isFirestoreRequest) {
+    // STRATEGIE: Network First, then Cache (pentru datele dinamice)
+    // Întâi încercăm să luăm datele de pe rețea pentru a avea mereu conținutul proaspăt.
+    // Doar dacă rețeaua eșuează, folosim ce avem în cache.
+    event.respondWith(
+      fetch(request)
+        .then(networkResponse => {
+          // Dacă primim un răspuns valid, îl punem în cache pentru utilizare offline
+          if (networkResponse && networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(request, responseClone);
+            });
           }
           return networkResponse;
-        });
+        })
+        .catch(() => {
+          // Dacă rețeaua eșuează, căutăm în cache
+          console.log('Service Worker: Rețeaua a eșuat, se caută în cache pentru:', request.url);
+          return caches.match(request);
+        })
+    );
+  } else {
+    // STRATEGIE: Stale-While-Revalidate (pentru resursele statice ale aplicației)
+    // Răspundem imediat cu resursa din cache dacă există, pentru viteză.
+    // În același timp, facem o cerere la rețea pentru a actualiza cache-ul pentru viitor.
+    event.respondWith(
+      caches.open(CACHE_NAME).then(cache => {
+        return cache.match(request).then(cachedResponse => {
+          const fetchedResponsePromise = fetch(request).then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch(err => {
+            console.warn('Service Worker: Eroare la fetch pentru resursă statică:', request.url, err);
+          });
 
-        return cachedResponse || fetchedResponsePromise;
-      });
-    })
-  );
+          // Returnăm răspunsul din cache imediat (dacă există) sau așteptăm răspunsul de la rețea.
+          return cachedResponse || fetchedResponsePromise;
+        });
+      })
+    );
+  }
 });
