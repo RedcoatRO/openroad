@@ -1,11 +1,10 @@
 
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Testimonial, TeamMember } from '../../types';
 import { PaletteIcon, XIcon } from '../../components/icons';
-import TeamManager from '../../components/admin/TeamManager'; // Importăm noul manager
+import TeamManager from '../../components/admin/TeamManager';
+import GlobalSettingsPanel from '../../components/admin/GlobalSettingsPanel'; // Import the new component
 
 // Componenta pentru panoul de editare a unui element (text sau imagine)
 const EditPanel: React.FC<{
@@ -135,6 +134,7 @@ const TestimonialManager: React.FC<{ onContentUpdate: () => void }> = ({ onConte
 
 // Lista de pagini disponibile pentru editare
 const editablePages = [
+    { name: 'Editare Logo & Setări Globale', path: 'global-settings' },
     { name: 'Acasă', path: '/' },
     { name: 'Despre noi', path: '/#/despre-noi' },
     { name: 'Servicii', path: '/#/servicii' },
@@ -150,9 +150,8 @@ const VisualEditorPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(editablePages[0].path);
 
     const reloadIframe = useCallback((forceReload: boolean = false) => {
-        if (iframeRef.current) {
+        if (iframeRef.current && currentPage !== 'global-settings') {
             if (forceReload) {
-                // Forțăm reîncărcarea completă a iframe-ului, adăugând un timestamp pentru a preveni caching-ul
                 const newSrc = `${currentPage.split('?')[0]}?t=${new Date().getTime()}`;
                 iframeRef.current.src = newSrc;
             }
@@ -177,6 +176,10 @@ const VisualEditorPage: React.FC = () => {
 
     
     const toggleEditMode = () => {
+        if (currentPage === 'global-settings') {
+            alert("Modul de editare vizuală nu se aplică setărilor globale. Salvați direct din panou.");
+            return;
+        }
         if (!isIframeReady) {
             alert("Previzualizarea nu este încă încărcată. Vă rugăm așteptați.");
             return;
@@ -192,22 +195,18 @@ const VisualEditorPage: React.FC = () => {
     };
     
     const handleSaveElement = async (id: string, newContent: string) => {
-        const idParts = id.split('-'); // ex: ['team', '0', 'image']
+        const idParts = id.split('-');
     
-        // Verifică dacă este un element de tip "team"
         if (idParts[0] === 'team' && idParts.length === 3) {
             try {
                 const index = parseInt(idParts[1], 10);
                 const field = idParts[2] as keyof TeamMember;
     
-                // Preluăm lista curentă de membri
                 const currentTeam = await adminDataService.getTeamMembers();
                 if (currentTeam[index]) {
-                    // Modificăm câmpul specific
                     (currentTeam[index] as any)[field] = newContent;
-                    // Salvăm întreaga listă actualizată
                     await adminDataService.updateTeamMembers(currentTeam);
-                    // Reîncărcăm iframe-ul pentru a reflecta schimbarea datelor structurate
+                    // Force reload to reflect the change, as requested
                     reloadIframe(true);
                 } else {
                     throw new Error(`Membru cu indexul ${index} nu a fost găsit.`);
@@ -217,7 +216,6 @@ const VisualEditorPage: React.FC = () => {
                 alert("A apărut o eroare la salvarea datelor echipei.");
             }
         } else {
-            // Logica existentă pentru conținutul simplu (non-structurat)
             await adminDataService.setContentOverride(id, newContent);
             iframeRef.current?.contentWindow?.postMessage({
                 type: 'FL_PRO_UPDATE_CONTENT',
@@ -229,13 +227,17 @@ const VisualEditorPage: React.FC = () => {
     };
     
     const handlePageChange = (path: string) => {
-        if (iframeRef.current) {
-            setIsIframeReady(false);
-            setEditingElement(null);
+        setIsIframeReady(false);
+        setEditingElement(null);
+        setIsEditMode(false); // Deactivate edit mode when changing page
+        setCurrentPage(path);
+        // We only update the iframe src if it's not the global settings page
+        if (iframeRef.current && path !== 'global-settings') {
             iframeRef.current.src = path;
-            setCurrentPage(path);
         }
     };
+    
+    const isGlobalSettings = currentPage === 'global-settings';
 
     return (
         <div className="flex h-full -m-4 sm:-m-6 lg:-m-8">
@@ -243,7 +245,7 @@ const VisualEditorPage: React.FC = () => {
                 <h1 className="text-xl font-semibold text-text-main flex items-center gap-2"><PaletteIcon /> Editor Vizual</h1>
                 
                 <div>
-                    <label className="text-sm font-medium">Editează Pagina:</label>
+                    <label className="text-sm font-medium">Editează Pagina sau Setări:</label>
                     <select
                         value={currentPage}
                         onChange={(e) => handlePageChange(e.target.value)}
@@ -255,12 +257,14 @@ const VisualEditorPage: React.FC = () => {
                     </select>
                 </div>
 
-                <button
-                    onClick={toggleEditMode}
-                    className={`w-full font-semibold py-2.5 rounded-lg text-white transition-colors ${isEditMode ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary-600'}`}
-                >
-                    {isEditMode ? 'Oprește Editarea' : 'Activează Editarea'}
-                </button>
+                {!isGlobalSettings && (
+                    <button
+                        onClick={toggleEditMode}
+                        className={`w-full font-semibold py-2.5 rounded-lg text-white transition-colors ${isEditMode ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary-600'}`}
+                    >
+                        {isEditMode ? 'Oprește Editarea' : 'Activează Editarea'}
+                    </button>
+                )}
                 
                 {isEditMode && !editingElement && (
                     <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
@@ -277,6 +281,9 @@ const VisualEditorPage: React.FC = () => {
                 )}
                 
                 <div className="flex-grow pt-4 border-t overflow-y-auto space-y-4">
+                    {isGlobalSettings && (
+                        <GlobalSettingsPanel onContentUpdate={() => reloadIframe(true)} />
+                    )}
                     {currentPage === '/' && (
                         <TestimonialManager onContentUpdate={() => reloadIframe(true)} />
                     )}
@@ -287,13 +294,21 @@ const VisualEditorPage: React.FC = () => {
 
             </aside>
 
-            <main className="flex-1 bg-gray-300">
-                <iframe
-                    ref={iframeRef}
-                    src={currentPage}
-                    title="Previzualizare Site"
-                    className="w-full h-full border-0"
-                />
+            <main className="flex-1 bg-gray-300 flex items-center justify-center">
+                {isGlobalSettings ? (
+                    <div className="text-center text-gray-500 p-8">
+                        <PaletteIcon className="w-16 h-16 mx-auto text-gray-400" />
+                        <h2 className="mt-4 text-xl font-semibold">Setări Globale</h2>
+                        <p className="mt-2 text-sm">Modificările făcute în panoul din stânga se vor aplica pe întregul site.</p>
+                    </div>
+                ) : (
+                    <iframe
+                        ref={iframeRef}
+                        src={currentPage}
+                        title="Previzualizare Site"
+                        className="w-full h-full border-0"
+                    />
+                )}
             </main>
         </div>
     );
