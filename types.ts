@@ -20,10 +20,6 @@ export interface Vehicle {
   transmission: 'Automată' | 'Manuală';
   engine: string;
   consumption: string;
-  view360?: {
-    exterior: string;
-    interior: string;
-  };
   fuelType: 'Benzină' | 'Diesel' | 'Hibrid' | 'Electrică';
   power: number; 
   features: string[];

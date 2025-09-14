@@ -10,7 +10,6 @@ interface VehicleFormModalProps {
 }
 
 // Starea inițială goală pentru formularul de adăugare
-// FIX: Removed deprecated view360 properties.
 const emptyFormState = {
     model: '', brand: '', sku: '', type: 'Sedan', tags: '', perks: '',
     price: 0, image: '', transmission: 'Manuală', engine: '',
@@ -25,7 +24,6 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
     useEffect(() => {
         if (vehicle) {
             // Populează formularul cu datele vehiculului selectat pentru editare
-            // FIX: Removed deprecated view360 properties.
             setFormData({
                 ...vehicle,
                 tags: vehicle.tags.join(', '),
@@ -54,8 +52,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Se construiește obiectul vehicul final, procesând string-urile (ex: tags) înapoi în array-uri.
-        // FIX: Removed deprecated view360 properties logic.
+        // Se construiește obiectul vehicul final, procesând string-urile (ex: tags) înapoi în array-uri
         const vehiclePayload = {
             ...formData,
             type: formData.type as Vehicle['type'],
@@ -96,7 +93,6 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({ isOpen, onClose, on
                         <div><label className={labelClass}>Tip Combustibil</label><select name="fuelType" value={formData.fuelType} onChange={handleChange} className={inputClass}><option>Benzină</option><option>Diesel</option><option>Hibrid</option><option>Electrică</option></select></div>
                         <div><label className={labelClass}>Transmisie</label><select name="transmission" value={formData.transmission} onChange={handleChange} className={inputClass}><option>Manuală</option><option>Automată</option></select></div>
                          <div className="md:col-span-2"><label className={labelClass}>URL Imagine Principală</label><input type="text" name="image" value={formData.image} onChange={handleChange} className={inputClass} required/></div>
-                         {/* FIX: Removed deprecated view360 fields. */}
                          <div className="md:col-span-2"><label className={labelClass}>Etichete (separate prin virgulă)</label><input type="text" name="tags" value={formData.tags} onChange={handleChange} className={inputClass}/></div>
                          <div className="md:col-span-2"><label className={labelClass}>Beneficii (separate prin virgulă)</label><input type="text" name="perks" value={formData.perks} onChange={handleChange} className={inputClass}/></div>
                          <div className="md:col-span-2"><label className={labelClass}>Dotări (separate prin virgulă)</label><input type="text" name="features" value={formData.features} onChange={handleChange} className={inputClass}/></div>

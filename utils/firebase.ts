@@ -1,8 +1,5 @@
-// Importăm pachetele de compatibilitate Firebase v9, care permit folosirea sintaxei v8
-import firebase from 'firebase/app/compat';
-import 'firebase/auth/compat';
-import 'firebase/firestore/compat';
-import 'firebase/storage/compat';
+// Importăm pachetul de compatibilitate Firebase v9, care include toate serviciile
+import firebase from 'firebase/compat';
 
 // Configurația pentru aplicația web Firebase, furnizată de utilizator
 const firebaseConfig = {

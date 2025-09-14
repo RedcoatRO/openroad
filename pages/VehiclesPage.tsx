@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Vehicle } from '../types';
-import { CheckCircleIcon, ChevronDownIcon } from '../components/icons';
+import { CheckCircleIcon, ChevronDownIcon, SearchIcon } from '../components/icons';
 import ComparisonModal from '../components/ComparisonModal';
 import { adminDataService } from '../utils/adminDataService';
 import VehicleCard from '../components/VehicleCard';
@@ -59,6 +59,10 @@ const VehiclesPage: React.FC = () => {
     const [comparisonList, setComparisonList] = useState<Vehicle[]>([]);
     const [isCompareModalOpen, setCompareModalOpen] = useState(false);
     
+    // Stări noi pentru filtrele adăugate
+    const [searchQuery, setSearchQuery] = useState('');
+    const [brandFilter, setBrandFilter] = useState('Toate');
+    const [typeFilter, setTypeFilter] = useState('Toate');
     const [fuelFilter, setFuelFilter] = useState<string>('Toate');
     const [powerFilter, setPowerFilter] = useState({ min: '', max: '' });
     const [featureFilters, setFeatureFilters] = useState<string[]>([]);
@@ -80,6 +84,9 @@ const VehiclesPage: React.FC = () => {
         fetchVehicles();
     }, []);
 
+    // Generează dinamic listele de opțiuni pentru filtre, fără duplicate
+    const allBrands = useMemo(() => Array.from(new Set(allVehicles.map(v => v.brand))).sort(), [allVehicles]);
+    const allTypes = useMemo(() => Array.from(new Set(allVehicles.map(v => v.type))).sort(), [allVehicles]);
     const allFeatures = useMemo(() => {
         const featuresSet = new Set<string>();
         allVehicles.forEach(v => v.features.forEach(f => featuresSet.add(f)));
@@ -92,8 +99,28 @@ const VehiclesPage: React.FC = () => {
         );
     };
 
+    // Logica de filtrare și sortare a fost extinsă pentru a include noile filtre
     const filteredAndSortedVehicles = useMemo(() => {
         let result = [...allVehicles];
+
+        // 1. Filtru de căutare (marcă sau model)
+        if (searchQuery.length > 1) {
+            const lowerCaseQuery = searchQuery.toLowerCase();
+            result = result.filter(v => 
+                v.model.toLowerCase().includes(lowerCaseQuery) || 
+                v.brand.toLowerCase().includes(lowerCaseQuery)
+            );
+        }
+        
+        // 2. Filtru după marcă
+        if (brandFilter !== 'Toate') {
+            result = result.filter(v => v.brand === brandFilter);
+        }
+        
+        // 3. Filtru după tip caroserie
+        if (typeFilter !== 'Toate') {
+            result = result.filter(v => v.type === typeFilter);
+        }
 
         if (fuelFilter !== 'Toate') {
             result = result.filter(v => v.fuelType === fuelFilter);
@@ -123,7 +150,7 @@ const VehiclesPage: React.FC = () => {
         });
 
         return result;
-    }, [allVehicles, fuelFilter, powerFilter, featureFilters, sortBy]);
+    }, [allVehicles, searchQuery, brandFilter, typeFilter, fuelFilter, powerFilter, featureFilters, sortBy]);
 
     const handleToggleCompare = (vehicle: Vehicle) => {
         setComparisonList(prevList => {
@@ -160,30 +187,62 @@ const VehiclesPage: React.FC = () => {
             </section>
             
             <div className="sticky top-[70px] bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg z-30 shadow-sm">
-                <div className="container mx-auto px-4 py-4 space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="container mx-auto px-4 py-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-center">
+                        {/* Câmpul de căutare nou */}
+                        <div className="relative col-span-2">
+                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                            <input 
+                                type="text" 
+                                placeholder="Caută marcă sau model..." 
+                                value={searchQuery} 
+                                onChange={e => setSearchQuery(e.target.value)} 
+                                className={`${inputClass} pl-9`} 
+                                aria-label="Caută vehicul"
+                            />
+                        </div>
+                        
+                        {/* Filtrul nou pentru Marcă */}
+                        <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} className={inputClass} aria-label="Marcă">
+                            <option value="Toate">Marcă (toate)</option>
+                            {allBrands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+                        </select>
+                        
+                        {/* Filtrul nou pentru Caroserie */}
+                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className={inputClass} aria-label="Tip caroserie">
+                            <option value="Toate">Caroserie (toate)</option>
+                            {allTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                        </select>
+                        
+                        {/* Filtrele existente */}
                         <select value={fuelFilter} onChange={e => setFuelFilter(e.target.value)} className={inputClass} aria-label="Tip combustibil">
                             <option value="Toate">Combustibil (toate)</option>
                             <option>Benzină</option> <option>Diesel</option>
                             <option>Hibrid</option> <option>Electrică</option>
                         </select>
+
                         <input type="number" placeholder="Putere min (CP)" value={powerFilter.min} onChange={e => setPowerFilter(p => ({...p, min: e.target.value}))} className={inputClass} aria-label="Putere minimă"/>
                         <input type="number" placeholder="Putere max (CP)" value={powerFilter.max} onChange={e => setPowerFilter(p => ({...p, max: e.target.value}))} className={inputClass} aria-label="Putere maximă"/>
-                        <button onClick={() => setShowFeatures(!showFeatures)} className={`${inputClass} text-left flex justify-between items-center col-span-2 md:col-span-1`}>
-                           <span>Dotări specifice</span> <ChevronDownIcon className={`w-4 h-4 transition-transform ${showFeatures ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={`${inputClass} col-span-2 md:col-span-3 lg:col-span-1`} aria-label="Sortează după">
+                        
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={`${inputClass} col-span-2 md:col-span-1`} aria-label="Sortează după">
                            <option value="popularity-desc">Sortează: Popularitate</option>
                            <option value="price-asc">Sortează: Preț crescător</option>
                            <option value="price-desc">Sortează: Preț descrescător</option>
                            <option value="model-asc">Sortează: Model (A-Z)</option>
                         </select>
+                        
+                        <button onClick={() => setShowFeatures(!showFeatures)} className={`${inputClass} text-left flex justify-between items-center col-span-2 md:col-span-2`}>
+                           <span>Dotări specifice</span> <ChevronDownIcon className={`w-4 h-4 transition-transform duration-300 ${showFeatures ? 'rotate-180' : ''}`} />
+                        </button>
                     </div>
 
-                    {showFeatures && (
-                        <div className="pt-4 border-t border-border dark:border-gray-700">
-                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {/* Container animat pentru dotări.
+                        Folosește tranziții CSS pentru 'max-height' și 'opacity' pentru a crea
+                        un efect fluid de afișare/ascundere. 'overflow-hidden' este esențial
+                        pentru ca 'max-height' să funcționeze corect. */}
+                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showFeatures ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                        <div className="border-t border-border dark:border-gray-700 pt-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                 {allFeatures.map(feature => (
                                     <label key={feature} className="flex items-center space-x-2 text-sm text-muted dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" checked={featureFilters.includes(feature)} onChange={() => handleFeatureChange(feature)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
@@ -192,7 +251,7 @@ const VehiclesPage: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
             

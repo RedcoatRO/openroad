@@ -115,7 +115,7 @@ export const MoonIcon: React.FC<IconProps> = (props) => (
 );
 
 export const HeartIcon: React.FC<IconProps> = (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5 2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
 );
 
 export const Rotate3dIcon: React.FC<IconProps> = (props) => (
@@ -205,14 +205,4 @@ export const ExternalLinkIcon: React.FC<IconProps> = (props) => (
 
 export const ImageIcon: React.FC<IconProps> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-);
-
-// FIX: Added the missing Logo component.
-export const Logo: React.FC<IconProps> = (props) => (
-    <svg width="180" height="26" viewBox="0 0 180 26" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <text x="0" y="20" style={{ fontFamily: 'Inter, sans-serif', fontSize: '20px', fontWeight: 'bold' }} fill="#0B5FFF">
-            Open Road
-            <tspan fill="#6B7280"> Leasing</tspan>
-        </text>
-    </svg>
 );

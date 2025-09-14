@@ -34,7 +34,6 @@ const APP_SHELL_FILES = [
   '/components/StockAlertModal.tsx',
   '/components/StructuredData.tsx',
   '/components/TCOCalculator.tsx',
-  '/components/Vehicle360Viewer.tsx',
   '/components/VehicleCard.tsx',
   '/components/VehicleDetailModal.tsx',
   '/components/VehicleReviews.tsx',
@@ -80,8 +79,6 @@ const APP_SHELL_FILES = [
 const CDN_FILES_TO_CACHE = [
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css',
-  'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js',
 ];
 
 const ASSETS_TO_CACHE = [...APP_SHELL_FILES, ...CDN_FILES_TO_CACHE];

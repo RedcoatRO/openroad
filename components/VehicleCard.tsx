@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import type { Vehicle } from '../types';
-import { CheckCircleIcon, ScaleIcon, CogIcon, EngineIcon, FuelIcon, HeartIcon, Rotate3dIcon, BellIcon } from '../components/icons';
+import { CheckCircleIcon, ScaleIcon, CogIcon, EngineIcon, FuelIcon, HeartIcon, BellIcon } from '../components/icons';
 import Image from './Image';
 import { FavoritesContext } from '../contexts/FavoritesContext';
 
@@ -41,16 +41,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onQuoteClick, onComp
                 {!vehicle.isAvailable && (
                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full backdrop-blur-sm">
                         Stoc epuizat
-                    </div>
-                )}
-                {vehicle.view360 && (
-                    <div 
-                        className={`absolute top-3 ${!vehicle.isAvailable ? 'left-28' : 'left-3'} flex items-center gap-1.5 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded-full cursor-pointer backdrop-blur-sm`}
-                        title="Vizualizare 360° disponibilă"
-                        onClick={() => onViewDetails(vehicle)}
-                    >
-                        <Rotate3dIcon className="w-4 h-4" />
-                        360°
                     </div>
                 )}
 
