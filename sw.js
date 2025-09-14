@@ -1,22 +1,91 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v1';
+const CACHE_NAME = 'openroad-leasing-cache-v2'; // Bumped cache version
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
-// Acestea asigură că aplicația se încarcă rapid și funcționează offline.
-const ASSETS_TO_CACHE = [
+const APP_SHELL_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/index.tsx', // Aceste fișiere .tsx sunt referințe, browser-ul va cere .js
+  '/index.tsx',
   '/App.tsx',
-  '/components/LoadingSpinner.tsx',
+  '/types.ts',
+  '/utils/adminDataService.ts',
+  '/utils/firebase.ts',
+  '/utils/formUtils.ts',
+  '/utils/imageCompressor.ts',
+  '/contexts/AuthContext.tsx',
+  '/contexts/FavoritesContext.tsx',
+  '/contexts/ThemeContext.tsx',
+  // Components
+  '/components/BookingCalendar.tsx',
+  '/components/Breadcrumbs.tsx',
+  '/components/ComparisonModal.tsx',
+  '/components/DocumentItem.tsx',
+  '/components/FavoritesModal.tsx',
+  '/components/FleetBuilder.tsx',
+  '/components/Footer.tsx',
+  '/components/Header.tsx',
+  '/components/icons.tsx',
+  '/components/Image.tsx',
+  '/components/InteractiveMap.tsx',
+  '/components/QuoteModal.tsx',
+  '/components/SearchBar.tsx',
+  '/components/StockAlertModal.tsx',
+  '/components/StructuredData.tsx',
+  '/components/TCOCalculator.tsx',
+  '/components/Vehicle360Viewer.tsx',
+  '/components/VehicleCard.tsx',
+  '/components/VehicleDetailModal.tsx',
+  '/components/VehicleReviews.tsx',
+  // Admin Components
+  '/components/admin/ChartWidget.tsx',
+  '/components/admin/ConfirmDeleteModal.tsx',
+  '/components/admin/DataTable.tsx',
+  '/components/admin/KPIcard.tsx',
+  '/components/admin/ProtectedRoute.tsx',
+  '/components/admin/Sidebar.tsx',
+  '/components/admin/Topbar.tsx',
+  '/components/admin/VehicleFormModal.tsx',
+  // Pages
+  '/pages/AboutPage.tsx',
+  '/pages/AdminDashboardPage.tsx',
+  '/pages/BenefitsPage.tsx',
+  '/pages/BookingPage.tsx',
+  '/pages/ContactPage.tsx',
+  '/pages/DocumentsPage.tsx',
+  '/pages/HomePage.tsx',
+  '/pages/ReferralPage.tsx',
+  '/pages/ServiceLeasingPage.tsx',
+  '/pages/ServiceRentalPage.tsx',
+  '/pages/ServicesPage.tsx',
+  '/pages/VehiclesPage.tsx',
+  // Admin Pages
+  '/pages/admin/AuditLogPage.tsx',
+  '/pages/admin/ClientManagementPage.tsx',
+  '/pages/admin/ContentManagementPage.tsx',
+  '/pages/admin/ImageGalleryPage.tsx',
+  '/pages/admin/LoginPage.tsx',
+  '/pages/admin/ReportsPage.tsx',
+  '/pages/admin/RequestManagementPage.tsx',
+  '/pages/admin/TwoFactorAuthPage.tsx',
+  '/pages/admin/UserManagementPage.tsx',
+  '/pages/admin/VehicleManagementPage.tsx',
+  '/pages/admin/VisualEditorPage.tsx',
+  // Assets
   '/logo192.png',
   '/logo512.png',
+];
+
+const CDN_FILES_TO_CACHE = [
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://unpkg.com/recharts/umd/Recharts.min.js'
+  'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css',
+  'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js',
 ];
+
+const ASSETS_TO_CACHE = [...APP_SHELL_FILES, ...CDN_FILES_TO_CACHE];
+
 
 // Evenimentul 'install': Se declanșează la prima vizită sau la o actualizare a service worker-ului.
 self.addEventListener('install', event => {
@@ -26,7 +95,12 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Adaugă resursele esențiale în cache');
-        return cache.addAll(ASSETS_TO_CACHE);
+        const cachePromises = ASSETS_TO_CACHE.map(asset => {
+            return cache.add(asset).catch(err => {
+                console.warn(`Nu s-a putut adăuga în cache: ${asset}`, err);
+            });
+        });
+        return Promise.all(cachePromises);
       })
       .catch(error => {
         console.error('Eroare la adăugarea în cache în timpul instalării:', error);
@@ -57,54 +131,25 @@ self.addEventListener('activate', event => {
 });
 
 // Evenimentul 'fetch': Se declanșează pentru fiecare cerere de rețea făcută de pagină.
-// Implementează o strategie "Cache-First, then Network & Cache".
+// Implementează o strategie "Stale-While-Revalidate" pentru un echilibru bun între viteză și actualizări.
 self.addEventListener('fetch', event => {
-  // Ignorăm cererile care nu sunt de tip GET.
-  if (event.request.method !== 'GET') {
+  // Ignorăm cererile care nu sunt de tip GET sau care sunt pentru extensii de browser.
+  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
   
-  // Răspunde la cerere fie cu resursa din cache, fie prin rețea.
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        // Dacă resursa este găsită în cache, o returnăm imediat.
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // Dacă resursa nu e în cache, o cerem din rețea.
-        return fetch(event.request).then(
-          networkResponse => {
-            // Verificăm dacă am primit un răspuns valid.
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              // Unele resurse (ex: CDN-uri fără CORS) pot da răspunsuri 'opaque'. Le lăsăm să treacă.
-               if(networkResponse.type === 'opaque') {
-                   // Nu putem verifica statusul, deci o adăugăm oricum în cache.
-               } else {
-                   return networkResponse;
-               }
-            }
-            
-            // Clonăm răspunsul, deoarece poate fi citit o singură dată.
-            const responseToCache = networkResponse.clone();
-
-            // Deschidem cache-ul și adăugăm noul răspuns.
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            // Returnăm răspunsul original către pagină.
-            return networkResponse;
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(cachedResponse => {
+        const fetchedResponsePromise = fetch(event.request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+             cache.put(event.request, networkResponse.clone());
           }
-        ).catch(error => {
-            // În caz de eroare de rețea (ex: offline), fetch-ul va eșua.
-            // Aici s-ar putea returna o pagină de fallback, dar pentru moment lăsăm eroarea să se propage.
-            console.error('Service Worker: Eroare la fetch:', error);
-            // Aruncăm eroarea pentru a semnala că cererea a eșuat.
-            throw error;
+          return networkResponse;
         });
-      })
+
+        return cachedResponse || fetchedResponsePromise;
+      });
+    })
   );
 });

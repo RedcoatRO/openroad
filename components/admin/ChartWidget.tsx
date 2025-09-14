@@ -1,8 +1,5 @@
-
 import React from 'react';
-
-// Recharts is loaded from CDN, so we declare it to satisfy TypeScript
-declare const Recharts: any;
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const chartData = [
   { name: 'Ian', Ocupate: 220, Disponibile: 1780 },
@@ -15,12 +12,6 @@ const chartData = [
 ];
 
 const ChartWidget: React.FC = () => {
-    if (typeof Recharts === 'undefined') {
-        return <div className="bg-white p-6 rounded-lg shadow-soft flex items-center justify-center h-full"><p>Loading chart...</p></div>;
-    }
-
-    const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = Recharts;
-
     return (
         <div className="bg-white p-6 rounded-lg shadow-soft h-96">
             <h2 className="text-lg font-semibold text-text-main mb-4">Ocupare flotă (ultimele 6 luni)</h2>
