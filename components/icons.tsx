@@ -4,12 +4,27 @@ import React from 'react';
 // Using a general props type for simplicity
 type IconProps = React.SVGProps<SVGSVGElement>;
 
+// FIX: Added the missing Logo component, which was causing import errors.
 export const Logo: React.FC<IconProps> = (props) => (
-  <svg width="190" height="32" viewBox="0 0 190 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <text x="0" y="24" fontFamily="Inter, sans-serif" fontSize="22" fontWeight="bold" className="fill-primary">
-      Open Road <tspan className="fill-muted dark:fill-gray-400">Leasing</tspan>
-    </text>
-  </svg>
+    <svg
+      width="190"
+      height="32"
+      viewBox="0 0 190 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <text
+        x="0"
+        y="24"
+        fontFamily="Inter, sans-serif"
+        fontSize="22"
+        fontWeight="bold"
+        fill="#0B5FFF"
+      >
+        Open Road <tspan fill="#6B7280">Leasing</tspan>
+      </text>
+    </svg>
 );
 
 export const CheckCircleIcon: React.FC<IconProps> = (props) => (

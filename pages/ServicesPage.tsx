@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { CheckCircleIcon, EuroIcon, WrenchIcon } from '../components/icons';
-import { adminDataService } from '../utils/adminDataService';
+import { EuroIcon, WrenchIcon } from '../components/icons';
+import { ContentContext } from '../contexts/ContentContext';
 
 const services = [
     {
@@ -22,37 +22,20 @@ const services = [
 ];
 
 const ServicesPage: React.FC = () => {
-    const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Stabilește un listener în timp real pentru conținutul editabil
-    useEffect(() => {
-        setIsLoading(true);
-        const unsubscribe = adminDataService.listenToContentOverrides((content) => {
-            setContentOverrides(content);
-            console.log('Content Overrides updated for ServicesPage:', content);
-            setIsLoading(false);
-        });
-        
-        // Curăță listener-ul la demontarea componentei
-        return () => unsubscribe();
-    }, []);
-
-    const getContent = (id: string) => contentOverrides[id] || '';
+    const { getContent, isLoading } = useContext(ContentContext)!;
     
     if (isLoading) {
         return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
     }
 
-
     return (
         <>
             {/* Hero Section */}
-            <section data-editable-id="services-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('services-hero-bg')}')` }}>
+            <section data-editable-id="services-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('services-hero-bg', 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?q=80&w=1920&h=600&fit=crop&fm=jpg')}')` }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 data-editable-id="services-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('services-hero-title')}</h1>
-                    <p data-editable-id="services-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('services-hero-subtitle')}</p>
+                    <h1 data-editable-id="services-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('services-hero-title', 'Soluții de Mobilitate Complete')}</h1>
+                    <p data-editable-id="services-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('services-hero-subtitle', 'De la leasing operațional all-inclusive la închirieri flexibile pe termen lung, avem soluția potrivită pentru afacerea ta.')}</p>
                     <div className="mt-8">
                         <Breadcrumbs />
                     </div>
@@ -63,8 +46,8 @@ const ServicesPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                      <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 data-editable-id="services-main-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('services-main-title')}</h2>
-                        <p data-editable-id="services-main-subtitle" className="mt-4 text-muted dark:text-gray-400">{getContent('services-main-subtitle')}</p>
+                        <h2 data-editable-id="services-main-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('services-main-title', 'Alege serviciul potrivit pentru tine')}</h2>
+                        <p data-editable-id="services-main-subtitle" className="mt-4 text-muted dark:text-gray-400">{getContent('services-main-subtitle', 'Fiecare opțiune este concepută pentru a oferi eficiență maximă și costuri predictibile, permițându-ți să te concentrezi pe activitatea principală a companiei tale.')}</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">

@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useContext } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import DocumentItem from '../components/DocumentItem';
+import { ContentContext } from '../contexts/ContentContext';
 
 // Datele pentru documente (ar putea veni dintr-un API în viitor)
 const documentsData = [
@@ -28,14 +28,20 @@ const documentsData = [
 ];
 
 const DocumentsPage: React.FC = () => {
+    const { getContent, isLoading } = useContext(ContentContext)!;
+
+    if (isLoading) {
+        return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
+    }
+
     return (
         <>
             {/* Hero Section */}
             <section className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: "url('https://picsum.photos/seed/documents/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold">Documente Utile</h1>
-                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Resurse și documente importante pentru partenerii noștri.</p>
+                    <h1 data-editable-id="docs-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('docs-hero-title', 'Documente Utile')}</h1>
+                    <p data-editable-id="docs-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('docs-hero-subtitle', 'Resurse și documente importante pentru partenerii noștri.')}</p>
                     <div className="mt-8">
                         <Breadcrumbs />
                     </div>
