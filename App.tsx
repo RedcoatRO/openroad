@@ -74,7 +74,7 @@ const MainLayout: React.FC = () => {
     const organizationSchema = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "Open Road Leasing",
+        "name": "Corporate Name",
         "url": "https://www.openroadleasing.com",
         "logo": "https://www.openroadleasing.com/logo.png",
         "contactPoint": {

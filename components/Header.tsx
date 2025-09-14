@@ -76,11 +76,11 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
         <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-soft' : 'bg-white dark:bg-gray-900'}`}>
             <div className={`container mx-auto px-4 transition-all duration-300 ${isScrolled ? 'py-3' : 'py-5'}`}>
                 <div className="flex justify-between items-center">
-                    <NavLink to="/" aria-label="Open Road Leasing Homepage">
+                    <NavLink to="/" aria-label="Homepage">
                          <img 
                             data-editable-id="site-logo" 
                             src={contentContext?.getContent('site-logo', fallbackLogoUri)} 
-                            alt="Open Road Leasing Logo" 
+                            alt="Logo" 
                             className="h-8 w-auto" 
                         />
                     </NavLink>

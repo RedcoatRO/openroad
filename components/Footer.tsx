@@ -17,7 +17,7 @@ const Footer: React.FC = () => {
                         <img 
                             data-editable-id="site-logo" 
                             src={contentContext?.getContent('site-logo', fallbackLogoUri)} 
-                            alt="Open Road Leasing Logo" 
+                            alt="Logo" 
                             className="h-8 w-auto" 
                         />
                         <p data-editable-id="footer-brief" className="text-sm">{contentContext?.getContent('footer-brief', 'Partenerul tău pentru mobilitate predictibilă și eficientă.')}</p>
@@ -69,7 +69,7 @@ const Footer: React.FC = () => {
                 </div>
 
                 <div className="border-t border-border dark:border-gray-700 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center text-xs">
-                    <p>&copy; {new Date().getFullYear()} Open Road Leasing. Toate drepturile rezervate.</p>
+                    <p>&copy; {new Date().getFullYear()} <span className="inline-block w-40 h-5 bg-red-500 align-middle" />. Toate drepturile rezervate.</p>
                     <div className="flex items-center space-x-4 mt-4 sm:mt-0">
                         <a href="#" className="hover:text-primary transition-colors">Termeni și condiții</a>
                         <span className="text-gray-400 dark:text-gray-600">|</span>

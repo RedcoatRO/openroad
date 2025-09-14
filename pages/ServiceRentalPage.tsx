@@ -15,7 +15,7 @@ const ServiceRentalPage: React.FC = () => {
         "serviceType": "Închiriere Auto pe Termen Lung",
         "provider": {
             "@type": "Organization",
-            "name": "Open Road Leasing"
+            "name": "Provider Name"
         },
         "description": "Flexibilitate maximă pentru nevoile tale de mobilitate pe o perioadă de 12-48 luni, cu pachete personalizabile și costuri fixe, predictibile.",
         "areaServed": {
