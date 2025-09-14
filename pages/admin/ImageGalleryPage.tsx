@@ -8,17 +8,20 @@ import type { UploadedImage } from '../../types'; // Importă tipul de imagine
 const ImageGalleryPage: React.FC = () => {
     const [images, setImages] = useState<UploadedImage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     // Funcție pentru a încărca imaginile din serviciul de date (Firestore)
     const loadImages = useCallback(async () => {
         setIsLoading(true);
+        setLoadError(null);
         try {
             const data = await adminDataService.getUploadedImages();
             setImages(data);
         } catch (err) {
             console.error("Eroare la încărcarea imaginilor:", err);
-            setError("Nu s-au putut încărca imaginile.");
+            setLoadError("Nu s-au putut încărca imaginile. Verificați regulile de securitate din Firestore.");
         } finally {
             setIsLoading(false);
         }
@@ -34,8 +37,8 @@ const ImageGalleryPage: React.FC = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        setIsLoading(true);
-        setError(null);
+        setIsUploading(true);
+        setUploadError(null);
 
         try {
             // Comprimă imaginea pentru a optimiza stocarea și lățimea de bandă
@@ -73,9 +76,9 @@ const ImageGalleryPage: React.FC = () => {
             } else {
                  errorMessage = err.message || errorMessage;
             }
-            setError(errorMessage);
+            setUploadError(errorMessage);
         } finally {
-            setIsLoading(false);
+            setIsUploading(false);
             event.target.value = '';
         }
     };
@@ -88,7 +91,7 @@ const ImageGalleryPage: React.FC = () => {
                 await loadImages();
             } catch (err) {
                  console.error("Eroare la ștergerea imaginii:", err);
-                 setError("Nu s-a putut șterge imaginea.");
+                 setUploadError("Nu s-a putut șterge imaginea.");
             }
         }
     };
@@ -120,18 +123,20 @@ const ImageGalleryPage: React.FC = () => {
                     type="file"
                     accept="image/png, image/jpeg, image/webp"
                     onChange={handleFileUpload}
-                    disabled={isLoading}
+                    disabled={isUploading}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary hover:file:bg-blue-100"
                 />
-                {isLoading && <p className="text-sm text-primary mt-2">Se procesează imaginea...</p>}
-                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+                {isUploading && <p className="text-sm text-primary mt-2">Se procesează imaginea...</p>}
+                {uploadError && <p className="text-sm text-red-500 mt-2">{uploadError}</p>}
             </div>
 
             {/* Galeria de imagini */}
             <div className="bg-white p-6 rounded-lg shadow-soft">
                  <h2 className="text-lg font-semibold mb-4">Imagini încărcate ({images.length})</h2>
-                {isLoading && images.length === 0 ? (
+                {isLoading ? (
                     <p className="text-center text-muted py-8">Se încarcă galeria...</p>
+                ) : loadError ? (
+                    <p className="text-center text-red-500 py-8">{loadError}</p>
                 ) : images.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {images.map(image => (
