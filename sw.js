@@ -1,6 +1,6 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v4'; // Versiune cache incrementată pentru a forța actualizarea
+const CACHE_NAME = 'openroad-leasing-cache-v5'; // Versiune cache incrementată pentru a forța actualizarea
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 const APP_SHELL_FILES = [
@@ -123,7 +123,6 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// Evenimentul 'fetch' actualizat cu noua logică
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -132,35 +131,50 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Verificăm dacă cererea este pentru date din Firestore
-  const isFirestoreRequest = request.url.includes('firestore.googleapis.com');
-
-  // STRATEGIE NOUĂ: Dacă este o cerere către Firestore, o ignorăm.
-  // Acest lucru forțează browser-ul să meargă direct la rețea, ocolind complet cache-ul Service Worker-ului.
-  // Asigură că datele dinamice sunt întotdeauna proaspete.
-  if (isFirestoreRequest) {
-    console.log('Service Worker: Ocolire cache pentru cerere Firestore:', request.url);
-    return; // Lasă browser-ul să gestioneze cererea
+  // Ocolim complet cache-ul pentru cererile către Firestore pentru a garanta date în timp real.
+  if (request.url.includes('firestore.googleapis.com')) {
+    return; // Lasă browser-ul să gestioneze cererea, fără intervenția Service Worker-ului.
   }
 
-  // STRATEGIE: Stale-While-Revalidate (pentru resursele statice ale aplicației)
-  // Răspundem imediat cu resursa din cache dacă există, pentru viteză.
-  // În același timp, facem o cerere la rețea pentru a actualiza cache-ul pentru viitor.
-  event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.match(request).then(cachedResponse => {
-        const fetchedResponsePromise = fetch(request).then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
-            cache.put(request, networkResponse.clone());
-          }
+  // STRATEGIE: Network First pentru paginile HTML (navigation requests)
+  // Asigură că utilizatorul primește întotdeauna cea mai nouă versiune a aplicației dacă este online.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(networkResponse => {
+          // Răspunsul a venit cu succes de la rețea. Îl clonăm și îl punem în cache.
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
           return networkResponse;
-        }).catch(err => {
-          console.warn('Service Worker: Eroare la fetch pentru resursă statică:', request.url, err);
-        });
+        })
+        .catch(() => {
+          // Rețeaua a eșuat (utilizatorul este offline). Încercăm să servim din cache.
+          return caches.match(request);
+        })
+    );
+    return; // Oprim execuția aici pentru cererile de navigare
+  }
 
-        // Returnăm răspunsul din cache imediat (dacă există) sau așteptăm răspunsul de la rețea.
-        return cachedResponse || fetchedResponsePromise;
+  // STRATEGIE: Stale-While-Revalidate pentru celelalte resurse (JS, CSS, imagini, etc.)
+  // Răspunde rapid din cache, dar actualizează resursa în fundal pentru următoarea vizită.
+  event.respondWith(
+    caches.match(request).then(cachedResponse => {
+      const fetchPromise = fetch(request).then(networkResponse => {
+        // Verificăm dacă răspunsul de la rețea este valid înainte de a-l adăuga în cache.
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      }).catch(err => {
+          // Dacă fetch-ul eșuează, nu facem nimic, pentru că vom returna răspunsul din cache mai jos (dacă există).
       });
+
+      // Returnează răspunsul din cache imediat (dacă există), altfel așteaptă răspunsul de la rețea.
+      return cachedResponse || fetchPromise;
     })
   );
 });
