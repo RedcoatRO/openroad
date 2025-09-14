@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -32,6 +31,7 @@ const ServicesPage: React.FC = () => {
             try {
                 const content = await adminDataService.getContentOverrides();
                 setContentOverrides(content);
+                console.log('Content Overrides loaded for ServicesPage:', content);
             } catch (error) {
                 console.error("Eroare la încărcarea conținutului:", error);
             } finally {

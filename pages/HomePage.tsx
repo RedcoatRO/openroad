@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import type { Testimonial, Vehicle } from '../types';
@@ -78,6 +77,7 @@ const HomePage: React.FC = () => {
                 // Setăm stările cu datele primite de la Firestore
                 setVehiclesForHomepage(vehicles.slice(0, 3));
                 setContentOverrides(content);
+                console.log('Content Overrides loaded for HomePage:', content);
                 setTestimonialsData(testimonials);
                 setPartners(partnersData);
             } catch (error) {

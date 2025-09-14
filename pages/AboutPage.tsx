@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import { TargetIcon, ArrowLeftRightIcon, ShieldCheckIcon, UsersIcon, CarIcon, CalendarIcon, StarIcon } from '../components/icons';
@@ -59,6 +58,7 @@ const AboutPage: React.FC = () => {
             try {
                 const content = await adminDataService.getContentOverrides();
                 setContentOverrides(content);
+                console.log('Content Overrides loaded for AboutPage:', content);
             } catch (error) {
                 console.error("Eroare la încărcarea conținutului:", error);
             } finally {

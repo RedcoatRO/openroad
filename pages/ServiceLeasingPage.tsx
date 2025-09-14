@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -17,6 +16,7 @@ const ServiceLeasingPage: React.FC = () => {
             try {
                 const content = await adminDataService.getContentOverrides();
                 setContentOverrides(content);
+                console.log('Content Overrides loaded for ServiceLeasingPage:', content);
             } catch (error) {
                 console.error("Eroare la încărcarea conținutului:", error);
             } finally {

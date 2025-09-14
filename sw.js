@@ -1,6 +1,6 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v3'; // Versiune cache incrementată
+const CACHE_NAME = 'openroad-leasing-cache-v4'; // Versiune cache incrementată pentru a forța actualizarea
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 const APP_SHELL_FILES = [
@@ -123,7 +123,7 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
-// Evenimentul 'fetch' actualizat cu logica diferențiată
+// Evenimentul 'fetch' actualizat cu noua logică
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -135,48 +135,32 @@ self.addEventListener('fetch', event => {
   // Verificăm dacă cererea este pentru date din Firestore
   const isFirestoreRequest = request.url.includes('firestore.googleapis.com');
 
+  // STRATEGIE NOUĂ: Dacă este o cerere către Firestore, o ignorăm.
+  // Acest lucru forțează browser-ul să meargă direct la rețea, ocolind complet cache-ul Service Worker-ului.
+  // Asigură că datele dinamice sunt întotdeauna proaspete.
   if (isFirestoreRequest) {
-    // STRATEGIE: Network First, then Cache (pentru datele dinamice)
-    // Întâi încercăm să luăm datele de pe rețea pentru a avea mereu conținutul proaspăt.
-    // Doar dacă rețeaua eșuează, folosim ce avem în cache.
-    event.respondWith(
-      fetch(request)
-        .then(networkResponse => {
-          // Dacă primim un răspuns valid, îl punem în cache pentru utilizare offline
-          if (networkResponse && networkResponse.ok) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, responseClone);
-            });
+    console.log('Service Worker: Ocolire cache pentru cerere Firestore:', request.url);
+    return; // Lasă browser-ul să gestioneze cererea
+  }
+
+  // STRATEGIE: Stale-While-Revalidate (pentru resursele statice ale aplicației)
+  // Răspundem imediat cu resursa din cache dacă există, pentru viteză.
+  // În același timp, facem o cerere la rețea pentru a actualiza cache-ul pentru viitor.
+  event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(request).then(cachedResponse => {
+        const fetchedResponsePromise = fetch(request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(request, networkResponse.clone());
           }
           return networkResponse;
-        })
-        .catch(() => {
-          // Dacă rețeaua eșuează, căutăm în cache
-          console.log('Service Worker: Rețeaua a eșuat, se caută în cache pentru:', request.url);
-          return caches.match(request);
-        })
-    );
-  } else {
-    // STRATEGIE: Stale-While-Revalidate (pentru resursele statice ale aplicației)
-    // Răspundem imediat cu resursa din cache dacă există, pentru viteză.
-    // În același timp, facem o cerere la rețea pentru a actualiza cache-ul pentru viitor.
-    event.respondWith(
-      caches.open(CACHE_NAME).then(cache => {
-        return cache.match(request).then(cachedResponse => {
-          const fetchedResponsePromise = fetch(request).then(networkResponse => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(request, networkResponse.clone());
-            }
-            return networkResponse;
-          }).catch(err => {
-            console.warn('Service Worker: Eroare la fetch pentru resursă statică:', request.url, err);
-          });
-
-          // Returnăm răspunsul din cache imediat (dacă există) sau așteptăm răspunsul de la rețea.
-          return cachedResponse || fetchedResponsePromise;
+        }).catch(err => {
+          console.warn('Service Worker: Eroare la fetch pentru resursă statică:', request.url, err);
         });
-      })
-    );
-  }
+
+        // Returnăm răspunsul din cache imediat (dacă există) sau așteptăm răspunsul de la rețea.
+        return cachedResponse || fetchedResponsePromise;
+      });
+    })
+  );
 });
