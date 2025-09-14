@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon, ImageIcon } from '../icons'; // Am adăugat iconițe noi
