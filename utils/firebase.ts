@@ -1,11 +1,8 @@
 // Importăm pachetele de compatibilitate Firebase v9, care permit folosirea sintaxei v8
-// Numele modulelor (ex: 'firebase/app') trebuie să corespundă exact cheilor din importmap-ul din index.html
-// FIX: Use 'firebase/compat/app' for the v8 compatibility layer namespace. This will expose the full firebase namespace with all services and types.
-import firebase from 'firebase/compat/app';
-// FIX: Use 'firebase/compat/*' for service imports to extend the namespace and make services like auth, firestore, and storage available on the firebase object.
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-import 'firebase/compat/storage';
+import firebase from 'firebase/app/compat';
+import 'firebase/auth/compat';
+import 'firebase/firestore/compat';
+import 'firebase/storage/compat';
 
 // Configurația pentru aplicația web Firebase, furnizată de utilizator
 const firebaseConfig = {
