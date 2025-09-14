@@ -1,7 +1,7 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { FleetItem, Vehicle } from '../types';
-import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
+import { adminDataService } from '../utils/adminDataService';
 import Image from './Image';
 import { XIcon } from './icons';
 
@@ -11,8 +11,23 @@ interface FleetBuilderProps {
 }
 
 const FleetBuilder: React.FC<FleetBuilderProps> = ({ currentFleet, onFleetChange }) => {
-    // Încarcă toate vehiculele din serviciul de date pentru a afișa lista completă și actualizată
-    const allVehicles = adminDataService.getVehicles();
+    const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Încarcă asincron toate vehiculele din serviciul de date la montarea componentei
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                const vehiclesFromDb = await adminDataService.getVehicles();
+                setAllVehicles(vehiclesFromDb);
+            } catch (error) {
+                console.error("Eroare la încărcarea vehiculelor pentru FleetBuilder:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchVehicles();
+    }, []);
 
     const fleetDetails = useMemo(() => {
         return currentFleet.map(item => {
@@ -21,7 +36,7 @@ const FleetBuilder: React.FC<FleetBuilderProps> = ({ currentFleet, onFleetChange
         }).filter(item => item.id !== undefined) as (Vehicle & { quantity: number })[];
     }, [currentFleet, allVehicles]);
 
-    const handleQuantityChange = (vehicleId: number, quantity: number) => {
+    const handleQuantityChange = (vehicleId: string, quantity: number) => {
         const newQuantity = Math.max(0, quantity);
         const existingItem = currentFleet.find(item => item.vehicleId === vehicleId);
 
@@ -43,7 +58,7 @@ const FleetBuilder: React.FC<FleetBuilderProps> = ({ currentFleet, onFleetChange
         onFleetChange(newFleet);
     };
     
-    const handleRemove = (vehicleId: number) => {
+    const handleRemove = (vehicleId: string) => {
         onFleetChange(currentFleet.filter(item => item.vehicleId !== vehicleId));
     };
 
@@ -54,29 +69,33 @@ const FleetBuilder: React.FC<FleetBuilderProps> = ({ currentFleet, onFleetChange
             {/* Lista de vehicule disponibile */}
             <div className="lg:col-span-2 h-full overflow-y-auto pr-4 -mr-4">
                  <h3 className="font-semibold text-lg text-text-main dark:text-white mb-4">1. Alege vehiculele și cantitatea</h3>
-                 <div className="space-y-3">
-                    {allVehicles.map(vehicle => (
-                        <div key={vehicle.id} className={`flex items-center justify-between p-3 rounded-lg ${!vehicle.isAvailable ? 'opacity-50' : 'bg-bg-alt dark:bg-gray-800/50'}`}>
-                            <div className="flex items-center gap-4">
-                                <Image src={vehicle.image} alt={vehicle.model} className="w-20 h-14 object-cover rounded-md"/>
-                                <div>
-                                    <p className="font-semibold text-text-main dark:text-white">{vehicle.model}</p>
-                                    <p className="text-xs text-muted dark:text-gray-400">{vehicle.type} &bull; {vehicle.engine}</p>
-                                    {!vehicle.isAvailable && <p className="text-xs font-semibold text-red-500">Indisponibil</p>}
+                 {isLoading ? (
+                     <p className="text-muted">Se încarcă lista de vehicule...</p>
+                 ) : (
+                    <div className="space-y-3">
+                        {allVehicles.map(vehicle => (
+                            <div key={vehicle.id} className={`flex items-center justify-between p-3 rounded-lg ${!vehicle.isAvailable ? 'opacity-50' : 'bg-bg-alt dark:bg-gray-800/50'}`}>
+                                <div className="flex items-center gap-4">
+                                    <Image src={vehicle.image} alt={vehicle.model} className="w-20 h-14 object-cover rounded-md"/>
+                                    <div>
+                                        <p className="font-semibold text-text-main dark:text-white">{vehicle.model}</p>
+                                        <p className="text-xs text-muted dark:text-gray-400">{vehicle.type} &bull; {vehicle.engine}</p>
+                                        {!vehicle.isAvailable && <p className="text-xs font-semibold text-red-500">Indisponibil</p>}
+                                    </div>
                                 </div>
+                                <input 
+                                    type="number"
+                                    min="0"
+                                    value={currentFleet.find(item => item.vehicleId === vehicle.id)?.quantity || 0}
+                                    onChange={(e) => handleQuantityChange(vehicle.id, parseInt(e.target.value, 10))}
+                                    className={inputClass}
+                                    aria-label={`Cantitate pentru ${vehicle.model}`}
+                                    disabled={!vehicle.isAvailable}
+                                />
                             </div>
-                            <input 
-                                type="number"
-                                min="0"
-                                value={currentFleet.find(item => item.vehicleId === vehicle.id)?.quantity || 0}
-                                onChange={(e) => handleQuantityChange(vehicle.id, parseInt(e.target.value, 10))}
-                                className={inputClass}
-                                aria-label={`Cantitate pentru ${vehicle.model}`}
-                                disabled={!vehicle.isAvailable}
-                            />
-                        </div>
-                    ))}
-                 </div>
+                        ))}
+                    </div>
+                 )}
             </div>
 
             {/* Sumar flotă */}

@@ -2,47 +2,61 @@
 import React, { useState, useEffect } from 'react';
 import type { VehicleReview } from '../types';
 import { StarIcon } from './icons';
+import { adminDataService } from '../utils/adminDataService';
 
 interface VehicleReviewsProps {
-    vehicleId: number;
-    initialReviews: VehicleReview[];
+    vehicleId: string; // ID-ul este acum string
+    initialReviews: VehicleReview[]; // Păstrăm recenziile inițiale ca fallback
 }
 
 const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId, initialReviews }) => {
-    // Starea pentru recenzii, inițializată din localStorage sau din props
-    const [reviews, setReviews] = useState<VehicleReview[]>(() => {
-        try {
-            const savedReviews = localStorage.getItem(`reviews_${vehicleId}`);
-            return savedReviews ? JSON.parse(savedReviews) : initialReviews;
-        } catch (error) {
-            console.error("Failed to parse reviews from localStorage", error);
-            return initialReviews;
-        }
-    });
-
-    // Starea pentru formularul de recenzie nouă
+    const [reviews, setReviews] = useState<VehicleReview[]>(initialReviews);
+    const [isLoading, setIsLoading] = useState(true);
     const [newReview, setNewReview] = useState({ author: '', rating: 0, comment: '' });
     const [hoverRating, setHoverRating] = useState(0);
 
-    // Efect pentru a salva recenziile în localStorage ori de câte ori se schimbă
+    // Funcție pentru a încărca recenziile din Firestore
+    const loadReviews = async () => {
+        if (!vehicleId) return;
+        setIsLoading(true);
+        try {
+            const reviewsFromDb = await adminDataService.getReviewsForVehicle(vehicleId);
+            setReviews(reviewsFromDb);
+        } catch (error) {
+            console.error(`Eroare la încărcarea recenziilor pentru vehiculul ${vehicleId}:`, error);
+            // În caz de eroare, se păstrează recenziile inițiale
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Încarcă recenziile la montarea componentei sau la schimbarea ID-ului vehiculului
     useEffect(() => {
-        localStorage.setItem(`reviews_${vehicleId}`, JSON.stringify(reviews));
-    }, [reviews, vehicleId]);
+        loadReviews();
+    }, [vehicleId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setNewReview({ ...newReview, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newReview.author && newReview.rating > 0 && newReview.comment) {
-            const reviewToAdd: VehicleReview = {
-                ...newReview,
-                date: new Date().toISOString(),
-            };
-            setReviews(prev => [reviewToAdd, ...prev]);
-            // Resetarea formularului
-            setNewReview({ author: '', rating: 0, comment: '' });
+            try {
+                // Adaugă noua recenzie în Firestore
+                await adminDataService.addReviewForVehicle(vehicleId, {
+                    author: newReview.author,
+                    rating: newReview.rating,
+                    comment: newReview.comment,
+                });
+                // Resetează formularul
+                setNewReview({ author: '', rating: 0, comment: '' });
+                // Reîncarcă lista de recenzii pentru a afișa adăugarea
+                await loadReviews();
+            } catch (error) {
+                console.error("Eroare la adăugarea recenziei:", error);
+                alert("A apărut o eroare la trimiterea recenziei.");
+            }
         }
     };
 
@@ -86,7 +100,9 @@ const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId, initialRevie
             {/* Lista de recenzii */}
             <h3 className="font-bold text-lg text-text-main dark:text-white mb-4">Recenzii clienți ({reviews.length})</h3>
             <div className="space-y-6">
-                {reviews.length > 0 ? reviews.map((review, index) => (
+                {isLoading ? (
+                    <p className="text-sm text-muted">Se încarcă recenziile...</p>
+                ) : reviews.length > 0 ? reviews.map((review, index) => (
                     <div key={index} className="border-b border-border dark:border-gray-700 pb-4">
                         <div className="flex items-center justify-between">
                             <p className="font-semibold text-text-main dark:text-white">{review.author}</p>

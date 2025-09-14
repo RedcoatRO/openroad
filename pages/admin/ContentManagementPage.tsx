@@ -1,17 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { FAQItem } from '../../types';
 
 const ContentManagementPage: React.FC = () => {
     const [faqs, setFaqs] = useState<FAQItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState<FAQItem | null>(null);
     const [newQuestion, setNewQuestion] = useState('');
     const [newAnswer, setNewAnswer] = useState('');
 
-    useEffect(() => {
-        setFaqs(adminDataService.getFAQs());
+    const loadFAQs = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const data = await adminDataService.getFAQs();
+            setFaqs(data);
+        } catch (error) {
+            console.error("Eroare la încărcarea FAQ-urilor:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        loadFAQs();
+    }, [loadFAQs]);
 
     const handleEditClick = (faq: FAQItem) => {
         setIsEditing(faq);
@@ -25,19 +38,30 @@ const ContentManagementPage: React.FC = () => {
         setNewAnswer('');
     };
 
-    const handleSave = () => {
-        if (isEditing) {
-            adminDataService.updateFAQ({ ...isEditing, question: newQuestion, answer: newAnswer });
-        } else {
-            adminDataService.addFAQ({ question: newQuestion, answer: newAnswer });
+    const handleSave = async () => {
+        try {
+            if (isEditing) {
+                await adminDataService.updateFAQ({ ...isEditing, question: newQuestion, answer: newAnswer });
+            } else {
+                await adminDataService.addFAQ({ question: newQuestion, answer: newAnswer });
+            }
+            await loadFAQs();
+        } catch (error) {
+            console.error("Eroare la salvarea FAQ-ului:", error);
+        } finally {
+            handleCancel();
         }
-        setFaqs(adminDataService.getFAQs());
-        handleCancel();
     };
 
-    const handleDelete = (faqId: number) => {
-        adminDataService.deleteFAQ(faqId);
-        setFaqs(adminDataService.getFAQs());
+    const handleDelete = async (faqId: string) => {
+        if (window.confirm("Ești sigur că vrei să ștergi această întrebare?")) {
+            try {
+                await adminDataService.deleteFAQ(faqId);
+                await loadFAQs();
+            } catch (error) {
+                console.error("Eroare la ștergerea FAQ-ului:", error);
+            }
+        }
     };
     
     const inputClass = "w-full p-2 border border-gray-300 rounded-md text-sm";
@@ -67,16 +91,20 @@ const ContentManagementPage: React.FC = () => {
             {/* Lista de FAQ-uri existente */}
             <div className="bg-white p-6 rounded-lg shadow-soft space-y-4">
                 <h2 className="text-lg font-semibold">Listă Întrebări Frecvente</h2>
-                {faqs.map(faq => (
-                    <div key={faq.id} className="border-b pb-2">
-                        <p className="font-semibold">{faq.question}</p>
-                        <p className="text-sm text-gray-600 mt-1">{faq.answer}</p>
-                        <div className="flex space-x-2 mt-2">
-                            <button onClick={() => handleEditClick(faq)} className="text-primary text-sm hover:underline">Editează</button>
-                            <button onClick={() => handleDelete(faq.id)} className="text-red-600 text-sm hover:underline">Șterge</button>
+                {isLoading ? (
+                    <p>Se încarcă...</p>
+                ) : (
+                    faqs.map(faq => (
+                        <div key={faq.id} className="border-b pb-2">
+                            <p className="font-semibold">{faq.question}</p>
+                            <p className="text-sm text-gray-600 mt-1">{faq.answer}</p>
+                            <div className="flex space-x-2 mt-2">
+                                <button onClick={() => handleEditClick(faq)} className="text-primary text-sm hover:underline">Editează</button>
+                                <button onClick={() => handleDelete(faq.id)} className="text-red-600 text-sm hover:underline">Șterge</button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
         </div>
     );

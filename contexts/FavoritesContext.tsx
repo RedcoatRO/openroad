@@ -1,9 +1,10 @@
+
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 interface FavoritesContextType {
-    favoriteIds: number[];
-    toggleFavorite: (id: number) => void;
-    isFavorite: (id: number) => boolean;
+    favoriteIds: string[]; // Modificat din number[] în string[]
+    toggleFavorite: (id: string) => void; // Modificat din number în string
+    isFavorite: (id: string) => boolean; // Modificat din number în string
 }
 
 export const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -14,7 +15,7 @@ interface FavoritesProviderProps {
 
 export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }) => {
     // Inițializarea stării listei de favorite, citind din localStorage.
-    const [favoriteIds, setFavoriteIds] = useState<number[]>(() => {
+    const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
         try {
             const savedFavorites = localStorage.getItem('favoriteVehicles');
             return savedFavorites ? JSON.parse(savedFavorites) : [];
@@ -31,7 +32,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     }, [favoriteIds]);
 
     // Funcție pentru a adăuga sau elimina un ID din lista de favorite.
-    const toggleFavorite = useCallback((id: number) => {
+    const toggleFavorite = useCallback((id: string) => {
         setFavoriteIds(prevIds => {
             if (prevIds.includes(id)) {
                 // Elimină ID-ul dacă există deja
@@ -44,7 +45,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     }, []);
 
     // Funcție pentru a verifica dacă un ID este în lista de favorite.
-    const isFavorite = useCallback((id: number) => {
+    const isFavorite = useCallback((id: string) => {
         return favoriteIds.includes(id);
     }, [favoriteIds]);
 

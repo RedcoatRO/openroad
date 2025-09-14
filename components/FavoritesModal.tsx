@@ -1,8 +1,8 @@
 
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { XIcon, HeartIcon } from './icons';
 import { FavoritesContext } from '../contexts/FavoritesContext';
-import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
+import { adminDataService } from '../utils/adminDataService';
 import VehicleCard from './VehicleCard';
 import type { Vehicle } from '../types';
 
@@ -16,17 +16,35 @@ interface FavoritesModalProps {
 
 const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuoteClick, onViewDetails, onStockAlertClick }) => {
     const favoritesContext = useContext(FavoritesContext);
+    const [favoriteVehicles, setFavoriteVehicles] = useState<Vehicle[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Încarcă detaliile complete ale vehiculelor favorite atunci când modalul este deschis
+    useEffect(() => {
+        if (isOpen && favoritesContext) {
+            setIsLoading(true);
+            const fetchFavoriteVehicles = async () => {
+                try {
+                    // Preia toate vehiculele din baza de date
+                    const allVehicles = await adminDataService.getVehicles();
+                    // Filtrează pentru a păstra doar cele marcate ca favorite
+                    const favs = allVehicles.filter(v => favoritesContext.favoriteIds.includes(v.id));
+                    setFavoriteVehicles(favs);
+                } catch (error) {
+                    console.error("Eroare la încărcarea vehiculelor favorite:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchFavoriteVehicles();
+        }
+    }, [isOpen, favoritesContext]);
 
     if (!isOpen) return null;
 
     if (!favoritesContext) {
         return <div>Error: Favorites context not available.</div>;
     }
-
-    const { favoriteIds } = favoritesContext;
-    // Încarcă toate vehiculele din serviciu pentru a avea datele actualizate
-    const allVehicles = adminDataService.getVehicles();
-    const favoriteVehicles = allVehicles.filter(v => favoriteIds.includes(v.id));
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="favorites-title">
@@ -41,7 +59,9 @@ const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuot
                     </button>
                 </div>
                 <div className="flex-grow overflow-auto p-8">
-                    {favoriteVehicles.length > 0 ? (
+                    {isLoading ? (
+                        <div className="text-center">Se încarcă...</div>
+                    ) : favoriteVehicles.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {favoriteVehicles.map(vehicle => (
                                 <VehicleCard

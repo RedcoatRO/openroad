@@ -1,10 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { CheckCircleIcon, ChevronDownIcon } from '../components/icons';
 import ComparisonModal from '../components/ComparisonModal';
-import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
+import { adminDataService } from '../utils/adminDataService';
 import VehicleCard from '../components/VehicleCard';
 import Breadcrumbs from '../components/Breadcrumbs'; 
 
@@ -24,7 +24,7 @@ const benefitsData = [
 const CompareBar: React.FC<{
     items: Vehicle[];
     onCompare: () => void;
-    onRemove: (vehicleId: number) => void;
+    onRemove: (vehicleId: string) => void;
     onClear: () => void;
 }> = ({ items, onCompare, onRemove, onClear }) => {
     return (
@@ -54,6 +54,8 @@ const CompareBar: React.FC<{
 
 const VehiclesPage: React.FC = () => {
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
+    const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [comparisonList, setComparisonList] = useState<Vehicle[]>([]);
     const [isCompareModalOpen, setCompareModalOpen] = useState(false);
     
@@ -63,8 +65,20 @@ const VehiclesPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('popularity-desc');
     const [showFeatures, setShowFeatures] = useState(false);
 
-    // Încarcă toate vehiculele folosind serviciul de date
-    const allVehicles = adminDataService.getVehicles();
+    // Încarcă toate vehiculele asincron de la Firestore la montarea componentei
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                const vehiclesFromDb = await adminDataService.getVehicles();
+                setAllVehicles(vehiclesFromDb);
+            } catch (error) {
+                console.error("Eroare la încărcarea vehiculelor:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchVehicles();
+    }, []);
 
     const allFeatures = useMemo(() => {
         const featuresSet = new Set<string>();
@@ -79,7 +93,7 @@ const VehiclesPage: React.FC = () => {
     };
 
     const filteredAndSortedVehicles = useMemo(() => {
-        let result = allVehicles;
+        let result = [...allVehicles];
 
         if (fuelFilter !== 'Toate') {
             result = result.filter(v => v.fuelType === fuelFilter);
@@ -126,7 +140,7 @@ const VehiclesPage: React.FC = () => {
         });
     };
     
-    const handleRemoveFromCompare = (vehicleId: number) => {
+    const handleRemoveFromCompare = (vehicleId: string) => {
         setComparisonList(prevList => prevList.filter(v => v.id !== vehicleId));
     };
 
@@ -183,19 +197,26 @@ const VehiclesPage: React.FC = () => {
             </div>
             
             <main className="container mx-auto px-4 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredAndSortedVehicles.map(vehicle => (
-                        <VehicleCard 
-                            key={vehicle.id} 
-                            vehicle={vehicle} 
-                            onQuoteClick={() => onQuoteClick(vehicle.model)}
-                            onCompareToggle={handleToggleCompare}
-                            isInCompare={comparisonList.some(v => v.id === vehicle.id)}
-                            onViewDetails={onViewDetails}
-                            onStockAlertClick={onStockAlertClick}
-                        />
-                    ))}
-                </div>
+                {isLoading ? (
+                     <div className="text-center py-16">Se încarcă vehiculele...</div>
+                ) : filteredAndSortedVehicles.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredAndSortedVehicles.map(vehicle => (
+                            <VehicleCard 
+                                key={vehicle.id} 
+                                vehicle={vehicle} 
+                                onQuoteClick={() => onQuoteClick(vehicle.model)}
+                                onCompareToggle={handleToggleCompare}
+                                isInCompare={comparisonList.some(v => v.id === vehicle.id)}
+                                onViewDetails={onViewDetails}
+                                onStockAlertClick={onStockAlertClick}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-16 text-muted">Niciun vehicul nu corespunde filtrelor selectate.</div>
+                )}
+
                 <p className="text-center text-xs text-muted dark:text-gray-500 mt-12 max-w-3xl mx-auto">
                     *Prețurile afișate sunt orientative...
                 </p>

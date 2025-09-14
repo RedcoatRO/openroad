@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Vehicle } from '../../types';
 import VehicleFormModal from '../../components/admin/VehicleFormModal';
@@ -8,13 +8,29 @@ import { DownloadIcon, PrinterIcon } from '../../components/icons';
 
 const VehicleManagementPage: React.FC = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-    const loadVehicles = () => setVehicles(adminDataService.getVehicles());
+    // Funcție `useCallback` pentru a încărca vehiculele, pentru a putea fi refolosită
+    const loadVehicles = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const data = await adminDataService.getVehicles();
+            setVehicles(data);
+        } catch (error) {
+            console.error("Eroare la încărcarea vehiculelor:", error);
+            // Aici se poate afișa o notificare de eroare
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-    useEffect(() => { loadVehicles(); }, []);
+    // Încarcă datele la prima randare a componentei
+    useEffect(() => {
+        loadVehicles();
+    }, [loadVehicles]);
 
     const handleOpenModal = (vehicle: Vehicle | null = null) => {
         setSelectedVehicle(vehicle);
@@ -36,21 +52,31 @@ const VehicleManagementPage: React.FC = () => {
         setSelectedVehicle(null);
     };
 
-    const handleSave = (vehicle: Vehicle | Omit<Vehicle, 'id'>) => {
-        if ('id' in vehicle) {
-            adminDataService.updateVehicle(vehicle);
-        } else {
-            adminDataService.addVehicle(vehicle);
+    const handleSave = async (vehicleData: Omit<Vehicle, 'id'> | Vehicle) => {
+        try {
+            if ('id' in vehicleData) {
+                await adminDataService.updateVehicle(vehicleData);
+            } else {
+                await adminDataService.addVehicle(vehicleData);
+            }
+            await loadVehicles(); // Reîncarcă lista după salvare
+        } catch (error) {
+            console.error("Eroare la salvarea vehiculului:", error);
+        } finally {
+            handleCloseModal();
         }
-        loadVehicles();
-        handleCloseModal();
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (selectedVehicle) {
-            adminDataService.deleteVehicle(selectedVehicle.id);
-            loadVehicles();
-            handleCloseDeleteModal();
+            try {
+                await adminDataService.deleteVehicle(selectedVehicle.id);
+                await loadVehicles(); // Reîncarcă lista după ștergere
+            } catch (error) {
+                console.error("Eroare la ștergerea vehiculului:", error);
+            } finally {
+                handleCloseDeleteModal();
+            }
         }
     };
 
@@ -84,35 +110,39 @@ const VehicleManagementPage: React.FC = () => {
 
             <div className="bg-white p-6 rounded-lg shadow-soft overflow-x-auto printable-area">
                 <h2 className="text-xl font-bold mb-4 hidden print:block">Raport Autoturisme</h2>
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3">Model</th>
-                            <th className="px-6 py-3">Tip</th>
-                            <th className="px-6 py-3">Preț/lună (€)</th>
-                            <th className="px-6 py-3">Disponibil</th>
-                            <th className="px-6 py-3 no-print">Acțiuni</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {vehicles.map(v => (
-                            <tr key={v.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{v.model}</td>
-                                <td className="px-6 py-4">{v.type}</td>
-                                <td className="px-6 py-4">{v.price}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${v.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {v.isAvailable ? 'Da' : 'Nu'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 flex space-x-2 no-print">
-                                    <button onClick={() => handleOpenModal(v)} className="text-primary hover:underline font-medium">Editează</button>
-                                    <button onClick={() => handleOpenDeleteModal(v)} className="text-red-600 hover:underline font-medium">Șterge</button>
-                                </td>
+                 {isLoading ? (
+                    <div className="text-center py-8">Se încarcă datele...</div>
+                ) : (
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3">Model</th>
+                                <th className="px-6 py-3">Tip</th>
+                                <th className="px-6 py-3">Preț/lună (€)</th>
+                                <th className="px-6 py-3">Disponibil</th>
+                                <th className="px-6 py-3 no-print">Acțiuni</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {vehicles.map(v => (
+                                <tr key={v.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-6 py-4 font-medium text-gray-900">{v.model}</td>
+                                    <td className="px-6 py-4">{v.type}</td>
+                                    <td className="px-6 py-4">{v.price}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${v.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {v.isAvailable ? 'Da' : 'Nu'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 flex space-x-2 no-print">
+                                        <button onClick={() => handleOpenModal(v)} className="text-primary hover:underline font-medium">Editează</button>
+                                        <button onClick={() => handleOpenDeleteModal(v)} className="text-red-600 hover:underline font-medium">Șterge</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {isModalOpen && <VehicleFormModal isOpen={isModalOpen} onClose={handleCloseModal} onSave={handleSave} vehicle={selectedVehicle} />}

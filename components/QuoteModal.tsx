@@ -22,6 +22,7 @@ const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         fleet: [] as FleetItem[], 
         notes: '', gdpr: false,
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [errors, setErrors] = useState<FormErrors>({});
 
@@ -37,18 +38,26 @@ const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     };
     const handleBack = () => setStep(prev => prev - 1);
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (hasErrorsInStep1 || isFleetEmpty) return;
+        if (hasErrorsInStep1 || isFleetEmpty || isSubmitting) return;
         
-        // Creăm un obiect de tip QuoteRequest și îl salvăm
-        const newRequest: Omit<QuoteRequest, 'id' | 'date' | 'status'> = {
-            ...formData
-        };
-        adminDataService.addRequest(newRequest);
-        
-        console.log('Form Submitted and Saved to localStorage:', newRequest);
-        setIsSubmitted(true);
+        setIsSubmitting(true);
+        try {
+            // Creăm un obiect de tip QuoteRequest și îl salvăm asincron
+            const newRequest: Omit<QuoteRequest, 'id' | 'date' | 'status'> = {
+                ...formData
+            };
+            await adminDataService.addRequest(newRequest);
+            
+            console.log('Form Submitted and Saved to Firestore:', newRequest);
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Failed to submit request:", error);
+            alert("A apărut o eroare la trimiterea solicitării. Vă rugăm încercați din nou.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const handleClose = () => {
@@ -56,6 +65,7 @@ const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         setTimeout(() => {
             setStep(1);
             setIsSubmitted(false);
+            setIsSubmitting(false);
             setErrors({});
             setFormData({
                 companyName: '', cui: '', contactPerson: '', email: '', phone: '',
@@ -115,7 +125,7 @@ const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                     {isSubmitted ? (
                         <div className="text-center py-12 flex flex-col justify-center items-center h-full">
                             <p className="text-lg text-text-main dark:text-white mb-2">Mulțumim!</p>
-                            <p className="text-muted dark:text-gray-400">Solicitarea a fost trimisă și administratorii au fost notificați. Te contactăm în 24–48h.</p>
+                            <p className="text-muted dark:text-gray-400">Solicitarea a fost trimisă. Te vom contacta în 24–48h.</p>
                             <button onClick={handleClose} className="mt-8 bg-primary text-white font-semibold px-6 py-2.5 rounded-btn hover:bg-primary-600 transition-colors">Închide</button>
                         </div>
                     ) : (
@@ -174,7 +184,7 @@ const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                                     </div>
                                     <div>
                                         {step < 3 && <button type="button" onClick={handleNext} disabled={(step === 1 && hasErrorsInStep1) || (step === 2 && isFleetEmpty)} className="bg-primary text-white font-semibold px-6 py-2.5 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">Continuă</button>}
-                                        {step === 3 && <button type="submit" className="bg-accent text-white font-bold px-8 py-2.5 rounded-btn hover:bg-green-600 transition-colors">Trimite solicitarea</button>}
+                                        {step === 3 && <button type="submit" disabled={isSubmitting} className="bg-accent text-white font-bold px-8 py-2.5 rounded-btn hover:bg-green-600 transition-colors disabled:bg-gray-400">{isSubmitting ? 'Se trimite...' : 'Trimite solicitarea'}</button>}
                                     </div>
                                 </div>
                             </div>

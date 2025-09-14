@@ -44,10 +44,21 @@ const ContactPage: React.FC = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
+    const [isLoadingFAQs, setIsLoadingFAQs] = useState(true);
 
     useEffect(() => {
-        // Încarcă item-urile FAQ din serviciul de date la montarea componentei
-        setFaqItems(adminDataService.getFAQs());
+        // Încarcă asincron item-urile FAQ din serviciul de date la montarea componentei
+        const fetchFAQs = async () => {
+            try {
+                const faqsFromDb = await adminDataService.getFAQs();
+                setFaqItems(faqsFromDb);
+            } catch (error) {
+                console.error("Eroare la încărcarea FAQ-urilor:", error);
+            } finally {
+                setIsLoadingFAQs(false);
+            }
+        };
+        fetchFAQs();
     }, []);
 
     const validateForm = () => { /* ... (cod existent, neschimbat) ... */ return true; };
@@ -66,7 +77,7 @@ const ContactPage: React.FC = () => {
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => { /* ... (cod existent, neschimbat) ... */ };
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Aici s-ar putea adăuga și salvarea mesajului de contact în localStorage
+        // Aici s-ar putea adăuga și salvarea mesajului de contact în Firestore
         setIsSubmitted(true);
     };
     
@@ -127,7 +138,9 @@ const ContactPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4 max-w-3xl">
                     <h2 className="text-3xl font-bold text-center text-text-main dark:text-white mb-8">Întrebări frecvente</h2>
-                    {faqItems.length > 0 ? (
+                    {isLoadingFAQs ? (
+                        <p className="text-center text-muted">Se încarcă întrebările...</p>
+                    ) : faqItems.length > 0 ? (
                         <div className="space-y-2">
                             {faqItems.map(item => <FAQAccordionItem key={item.id} item={item} />)}
                         </div>

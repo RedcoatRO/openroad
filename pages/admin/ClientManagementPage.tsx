@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Client, QuoteRequest, Vehicle } from '../../types';
@@ -5,14 +6,30 @@ import type { Client, QuoteRequest, Vehicle } from '../../types';
 const ClientManagementPage: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     useEffect(() => {
-        setClients(adminDataService.getClients());
-        setVehicles(adminDataService.getVehicles()); // Încarcă datele actualizate ale vehiculelor
+        const loadData = async () => {
+            setIsLoading(true);
+            try {
+                // Încarcă atât clienții, cât și vehiculele
+                const [clientsData, vehiclesData] = await Promise.all([
+                    adminDataService.getClients(),
+                    adminDataService.getVehicles()
+                ]);
+                setClients(clientsData);
+                setVehicles(vehiclesData);
+            } catch (error) {
+                console.error("Eroare la încărcarea datelor pentru clienți:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
     }, []);
 
-    const getVehicleModel = (id: number) => vehicles.find(v => v.id === id)?.model || 'Necunoscut';
+    const getVehicleModel = (id: string) => vehicles.find(v => v.id === id)?.model || 'Necunoscut';
 
     return (
         <div className="space-y-6">
@@ -22,19 +39,23 @@ const ClientManagementPage: React.FC = () => {
                 {/* Lista de clienți */}
                 <div className="md:col-span-1 bg-white p-4 rounded-lg shadow-soft h-[75vh] overflow-y-auto">
                     <h2 className="font-semibold text-lg mb-4 sticky top-0 bg-white pb-2">Clienți ({clients.length})</h2>
-                    <ul className="space-y-2">
-                        {clients.map(client => (
-                            <li key={client.cui}>
-                                <button 
-                                    onClick={() => setSelectedClient(client)}
-                                    className={`w-full text-left p-3 rounded-lg transition-colors ${selectedClient?.cui === client.cui ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
-                                >
-                                    <p className="font-semibold">{client.companyName}</p>
-                                    <p className={`text-xs ${selectedClient?.cui === client.cui ? 'text-blue-200' : 'text-muted'}`}>{client.contactPerson}</p>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                    {isLoading ? (
+                        <p>Se încarcă clienții...</p>
+                    ) : (
+                        <ul className="space-y-2">
+                            {clients.map(client => (
+                                <li key={client.cui}>
+                                    <button 
+                                        onClick={() => setSelectedClient(client)}
+                                        className={`w-full text-left p-3 rounded-lg transition-colors ${selectedClient?.cui === client.cui ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
+                                    >
+                                        <p className="font-semibold">{client.companyName}</p>
+                                        <p className={`text-xs ${selectedClient?.cui === client.cui ? 'text-blue-200' : 'text-muted'}`}>{client.contactPerson}</p>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 {/* Detalii client selectat */}

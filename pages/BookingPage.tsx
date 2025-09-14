@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import BookingCalendar from '../components/BookingCalendar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { ClockIcon, UsersIcon, PhoneIcon, MailIcon } from '../components/icons';
+import { adminDataService } from '../utils/adminDataService';
 
 // Intervale orare disponibile (hardcodate pentru demonstrație)
 const timeSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
@@ -11,6 +12,7 @@ const BookingPage: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [formData, setFormData] = useState({ name: '', company: '', email: '', phone: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleDateSelect = (date: Date) => {
@@ -22,16 +24,28 @@ const BookingPage: React.FC = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulare trimitere: salvăm datele în localStorage
-        const bookingData = { ...formData, date: selectedDate?.toLocaleDateString('ro-RO'), time: selectedTime };
-        const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        bookings.push(bookingData);
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        
-        console.log("Programare trimisă:", bookingData);
-        setIsSubmitted(true);
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            // Salvează datele programării în Firestore
+            const bookingData = { 
+                ...formData, 
+                date: selectedDate?.toISOString() || new Date().toISOString(), 
+                time: selectedTime 
+            };
+            await adminDataService.addBooking(bookingData);
+            
+            console.log("Programare trimisă:", bookingData);
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Eroare la trimiterea programării:", error);
+            alert("A apărut o eroare. Vă rugăm încercați din nou.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
@@ -100,7 +114,9 @@ const BookingPage: React.FC = () => {
                                      <div><label className={labelClass}>Nume companie</label><input type="text" name="company" required onChange={handleInputChange} className={inputClass} /></div>
                                      <div><label className={labelClass}>Email</label><input type="email" name="email" required onChange={handleInputChange} className={inputClass} /></div>
                                      <div><label className={labelClass}>Telefon</label><input type="tel" name="phone" required onChange={handleInputChange} className={inputClass} /></div>
-                                     <button type="submit" className="w-full bg-primary text-white font-bold py-3 rounded-btn hover:bg-primary-600 transition-colors">Confirmă programarea</button>
+                                     <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white font-bold py-3 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400">
+                                         {isSubmitting ? 'Se confirmă...' : 'Confirmă programarea'}
+                                     </button>
                                 </form>
                            ) : (
                                <div className="h-full flex items-center justify-center text-center p-8 bg-bg-alt dark:bg-gray-800 rounded-md">

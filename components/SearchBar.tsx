@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SearchIcon, XIcon, CarIcon } from './icons';
-import { adminDataService } from '../utils/adminDataService'; // Am schimbat sursa de date
-import type { SearchResult } from '../types';
+import { adminDataService } from '../utils/adminDataService';
+import type { SearchResult, Vehicle } from '../types';
 
 // Sursa de date centralizată pentru paginile site-ului
 const pageData: SearchResult[] = [
@@ -19,8 +19,16 @@ const SearchBar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
+    const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Încarcă datele vehiculelor o singură dată la montarea componentei
+    useEffect(() => {
+        adminDataService.getVehicles().then(vehicles => {
+            setAllVehicles(vehicles);
+        }).catch(err => console.error("Failed to load vehicles for search:", err));
+    }, []);
 
     // Funcția de căutare cu debounce
     const performSearch = useCallback((currentQuery: string) => {
@@ -31,11 +39,8 @@ const SearchBar: React.FC = () => {
         
         const lowerCaseQuery = currentQuery.toLowerCase();
         
-        // Încarcă datele actualizate ale vehiculelor
-        const vehiclesData = adminDataService.getVehicles();
-
-        // Caută în vehicule
-        const vehicleResults: SearchResult[] = vehiclesData
+        // Caută în vehiculele deja încărcate
+        const vehicleResults: SearchResult[] = allVehicles
             .filter(v => v.model.toLowerCase().includes(lowerCaseQuery))
             .map(v => ({
                 type: 'vehicle',
@@ -49,7 +54,7 @@ const SearchBar: React.FC = () => {
             .filter(p => p.title.toLowerCase().includes(lowerCaseQuery) || p.description?.toLowerCase().includes(lowerCaseQuery))
 
         setResults([...vehicleResults, ...pageResults].slice(0, 6)); // Limitează la 6 rezultate
-    }, []);
+    }, [allVehicles]);
 
     // Efect pentru a implementa debounce la căutare
     useEffect(() => {

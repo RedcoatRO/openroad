@@ -6,7 +6,7 @@ const imageParams = "?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=800&
 
 export const vehiclesData: Vehicle[] = [
     { 
-        id: 1, 
+        id: '1', 
         model: "Sedan Business", 
         brand: "Audi",
         sku: "FLP-SED-A4-01",
@@ -34,7 +34,7 @@ export const vehiclesData: Vehicle[] = [
         ],
     },
     { 
-        id: 2, 
+        id: '2', 
         model: "SUV Premium", 
         brand: "Volvo",
         sku: "FLP-SUV-XC60-01",
@@ -61,7 +61,7 @@ export const vehiclesData: Vehicle[] = [
         ],
     },
     { 
-        id: 3, 
+        id: '3', 
         model: "Electric City", 
         brand: "Volkswagen",
         sku: "FLP-ELEC-ID3-01",
@@ -84,7 +84,7 @@ export const vehiclesData: Vehicle[] = [
         isAvailable: true,
     },
     { 
-        id: 4, 
+        id: '4', 
         model: "Utilitară Pro", 
         brand: "Ford",
         sku: "FLP-UTIL-TRAN-01",
@@ -103,7 +103,7 @@ export const vehiclesData: Vehicle[] = [
         isAvailable: true,
     },
     { 
-        id: 5, 
+        id: '5', 
         model: "Sedan Compact", 
         brand: "Skoda",
         sku: "FLP-SED-OCT-01",
@@ -122,7 +122,7 @@ export const vehiclesData: Vehicle[] = [
         isAvailable: false,
     },
     { 
-        id: 6, 
+        id: '6', 
         model: "SUV Compact", 
         brand: "Hyundai",
         sku: "FLP-SUV-TUC-01",

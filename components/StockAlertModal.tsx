@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { Vehicle } from '../types';
 import { XIcon, BellIcon } from './icons';
+import { adminDataService } from '../utils/adminDataService';
 
 interface StockAlertModalProps {
     isOpen: boolean;
@@ -11,19 +12,27 @@ interface StockAlertModalProps {
 
 const StockAlertModal: React.FC<StockAlertModalProps> = ({ isOpen, onClose, vehicle }) => {
     const [email, setEmail] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     if (!isOpen || !vehicle) return null;
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulare salvare: salvăm în localStorage un obiect cu email-ul și ID-ul vehiculului
-        const subscriptions = JSON.parse(localStorage.getItem('stockSubscriptions') || '[]');
-        subscriptions.push({ email, vehicleId: vehicle.id, model: vehicle.model });
-        localStorage.setItem('stockSubscriptions', JSON.stringify(subscriptions));
-        
-        console.log(`Subscribed ${email} for alerts on ${vehicle.model}`);
-        setIsSubmitted(true);
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            // Salvează subscripția folosind serviciul de date, care o va stoca în Firestore
+            await adminDataService.addStockSubscription(email, vehicle.id, vehicle.model);
+            console.log(`Subscribed ${email} for alerts on ${vehicle.model}`);
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Failed to add stock subscription:", error);
+            alert("A apărut o eroare. Vă rugăm încercați din nou.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     // Resetarea stării la închidere
@@ -32,6 +41,7 @@ const StockAlertModal: React.FC<StockAlertModalProps> = ({ isOpen, onClose, vehi
         setTimeout(() => {
             setEmail('');
             setIsSubmitted(false);
+            setIsSubmitting(false);
         }, 300); // Așteaptă finalizarea animației de ieșire
     };
 
@@ -74,8 +84,8 @@ const StockAlertModal: React.FC<StockAlertModalProps> = ({ isOpen, onClose, vehi
                                     className="w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white focus:ring-primary focus:border-primary"
                                 />
                             </div>
-                            <button type="submit" className="mt-6 w-full bg-primary text-white font-semibold py-2.5 rounded-btn hover:bg-primary-600 transition-colors">
-                                Trimite
+                            <button type="submit" disabled={isSubmitting} className="mt-6 w-full bg-primary text-white font-semibold py-2.5 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400">
+                                {isSubmitting ? 'Se trimite...' : 'Trimite'}
                             </button>
                         </form>
                     )}

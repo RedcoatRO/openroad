@@ -7,7 +7,7 @@ export interface VehicleReview {
 }
 
 export interface Vehicle {
-  id: number;
+  id: string; // Modificat din number în string pentru compatibilitate Firestore
   model: string;
   brand: string;
   sku: string;
@@ -40,7 +40,7 @@ export interface Testimonial {
 }
 
 export interface FleetItem {
-  vehicleId: number;
+  vehicleId: string; // Modificat din number în string
   quantity: number;
 }
 
@@ -71,7 +71,7 @@ export interface QuoteRequest {
 export type UserRole = 'Admin' | 'Manager Vânzări' | 'Operator';
 
 export interface User {
-  id: number;
+  id: string; // Modificat din number în string
   name: string;
   email: string;
   role: UserRole;
@@ -79,7 +79,7 @@ export interface User {
 }
 
 export interface FAQItem {
-  id: number;
+  id: string; // Modificat din number în string
   question: string;
   answer: string;
 }
@@ -100,4 +100,13 @@ export interface AuditLogEntry {
     user: string; // Nume utilizator (simulat)
     action: string; // Ex: 'update_vehicle', 'delete_user'
     details: string; // Ex: 'A modificat vehiculul "Sedan Business"'
+}
+
+// Tip nou pentru imaginile încărcate în Firebase Storage
+export interface UploadedImage {
+    id: string;
+    name: string;
+    size: number;
+    downloadUrl: string;
+    storagePath: string; // Calea către fișier în Storage, necesară pentru ștergere
 }

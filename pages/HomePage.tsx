@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import type { Testimonial, Vehicle } from '../types';
 import { CarIcon, ClockIcon, ShieldCheckIcon, StarIcon, CheckCircleIcon, EuroIcon, WrenchIcon, PiggyBankIcon } from '../components/icons';
@@ -13,6 +13,7 @@ interface OutletContextType {
     onStockAlertClick: (vehicle: Vehicle) => void; 
 }
 
+// Date statice care nu se schimbă des
 const kpiData = [
     { icon: <CarIcon className="w-8 h-8 text-primary" />, value: "2.500+", label: "vehicule în administrare" },
     { icon: <ClockIcon className="w-8 h-8 text-primary" />, value: "10-15 zile", label: "Livrare în medie" },
@@ -52,32 +53,61 @@ const servicesData = [
 ];
 
 const HomePage: React.FC = () => {
-    const [activeFilter, setActiveFilter] = React.useState('Toate');
+    const [activeFilter, setActiveFilter] = useState('Toate');
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
 
-    // Încarcă datele dinamice din serviciu
-    const allVehicles = adminDataService.getVehicles();
-    const vehiclesForHomepage = allVehicles.slice(0, 3);
+    // Stări pentru datele dinamice și pentru starea de încărcare
+    const [vehiclesForHomepage, setVehiclesForHomepage] = useState<Vehicle[]>([]);
+    const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
+    const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
+    const [partners, setPartners] = useState<{ id: string, logoUrl: string, name: string }[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Încarcă conținutul editabil din serviciul de date
-    const heroTitle = adminDataService.getSingleContent('home-hero-title', 'Închirieri auto pe termen lung pentru companii');
-    const heroSubtitle = adminDataService.getSingleContent('home-hero-subtitle', 'Costuri lunare fixe, flotă flexibilă, fără grija mentenanței.');
-    const heroBgImage = adminDataService.getSingleContent('home-hero-bg', 'https://picsum.photos/seed/fleet/1920/1080');
-    const aboutTitle = adminDataService.getSingleContent('home-about-title', 'Partenerul de încredere pentru flota ta');
-    const aboutText = adminDataService.getSingleContent('home-about-text', 'Cu peste 10 ani de experiență în industrie, oferim soluții de mobilitate corporativă personalizate, eficiente și predictibile. Misiunea noastră este să simplificăm managementul flotei tale, astfel încât tu să te poți concentra pe creșterea afacerii tale.');
-    const testimonialsData = adminDataService.getTestimonials();
-    const partners = adminDataService.getPartners();
+    // useEffect pentru a încărca toate datele necesare asincron la montarea componentei
+    useEffect(() => {
+        const fetchPageData = async () => {
+            try {
+                // Folosim Promise.all pentru a încărca datele în paralel
+                const [vehicles, content, testimonials, partnersData] = await Promise.all([
+                    adminDataService.getVehicles(),
+                    adminDataService.getContentOverrides(),
+                    adminDataService.getTestimonials(),
+                    adminDataService.getPartners()
+                ]);
+                
+                // Setăm stările cu datele primite de la Firestore
+                setVehiclesForHomepage(vehicles.slice(0, 3));
+                setContentOverrides(content);
+                setTestimonialsData(testimonials);
+                setPartners(partnersData);
+            } catch (error) {
+                console.error("Eroare la încărcarea datelor pentru pagina principală:", error);
+                // Aici se poate adăuga o stare de eroare pentru a o afișa utilizatorului
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
+        fetchPageData();
+    }, []);
+
+    // Funcție ajutătoare pentru a obține conținutul, cu fallback
+    const getContent = (id: string, fallback: string) => contentOverrides[id] || fallback;
+
+    // Afișează o stare de încărcare cât timp datele sunt aduse de la server
+    if (isLoading) {
+        return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
+    }
 
     return (
         <>
             {/* Hero Section */}
-            <section data-editable-id="home-hero-bg" className="relative h-[600px] bg-cover bg-center text-white flex items-center" style={{ backgroundImage: `url('${heroBgImage}')` }}>
+            <section data-editable-id="home-hero-bg" className="relative h-[600px] bg-cover bg-center text-white flex items-center" style={{ backgroundImage: `url('${getContent('home-hero-bg', 'https://picsum.photos/seed/fleet/1920/1080')}')` }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-600/40"></div>
                 <div className="relative container mx-auto px-4 z-10">
                     <div className="max-w-3xl">
-                        <h1 data-editable-id="home-hero-title" className="text-4xl md:text-5xl font-bold leading-tight">{heroTitle}</h1>
-                        <p data-editable-id="home-hero-subtitle" className="mt-4 text-lg md:text-xl text-blue-100">{heroSubtitle}</p>
+                        <h1 data-editable-id="home-hero-title" className="text-4xl md:text-5xl font-bold leading-tight">{getContent('home-hero-title', 'Închirieri auto pe termen lung pentru companii')}</h1>
+                        <p data-editable-id="home-hero-subtitle" className="mt-4 text-lg md:text-xl text-blue-100">{getContent('home-hero-subtitle', 'Costuri lunare fixe, flotă flexibilă, fără grija mentenanței.')}</p>
                         <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                             <button onClick={() => onQuoteClick()} className="bg-primary text-white font-semibold px-8 py-3 rounded-btn hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">Solicită ofertă</button>
                             <a href="#catalog" className="bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3 rounded-btn border border-white/50 hover:bg-white/30 transition-colors text-center">Vezi oferta de mașini</a>
@@ -111,7 +141,7 @@ const HomePage: React.FC = () => {
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-12">
                         <h2 className="text-3xl font-bold text-text-main dark:text-white">Mobilitate fără bătăi de cap</h2>
-                        <p className="mt-4 text-muted dark:text-gray-400">Beneficiile unui parteneriat cu FleetLease Pro merg dincolo de simple închirieri.</p>
+                        <p className="mt-4 text-muted dark:text-gray-400">Beneficiile unui parteneriat cu Open Road Leasing merg dincolo de simple închirieri.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {benefitsData.map(benefit => (
@@ -132,13 +162,13 @@ const HomePage: React.FC = () => {
                          <div className="lg:w-1/2">
                             <Image 
                                 data-editable-id="home-about-image"
-                                src={adminDataService.getSingleContent('home-about-image', "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=600&h=400&fit=crop&fm=jpg")} 
-                                alt="Echipa FleetLease Pro" 
+                                src={getContent('home-about-image', "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=600&h=400&fit=crop&fm=jpg")} 
+                                alt="Echipa Open Road Leasing" 
                                 className="rounded-card shadow-md" />
                          </div>
                          <div className="lg:w-1/2">
-                            <h2 data-editable-id="home-about-title" className="text-3xl font-bold text-text-main dark:text-white">{aboutTitle}</h2>
-                            <p data-editable-id="home-about-text" className="mt-4 text-muted dark:text-gray-400">{aboutText}</p>
+                            <h2 data-editable-id="home-about-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-about-title', 'Partenerul de încredere pentru flota ta')}</h2>
+                            <p data-editable-id="home-about-text" className="mt-4 text-muted dark:text-gray-400">{getContent('home-about-text', 'Cu peste 10 ani de experiență în industrie, oferim soluții de mobilitate corporativă personalizate, eficiente și predictibile. Misiunea noastră este să simplificăm managementul flotei tale, astfel încât tu să te poți concentra pe creșterea afacerii tale.')}</p>
                             <NavLink to="/despre-noi" className="mt-6 inline-block text-primary font-semibold hover:underline">Află mai multe despre noi &rarr;</NavLink>
                          </div>
                     </div>
@@ -154,10 +184,10 @@ const HomePage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {servicesData.map(service => (
                             <div key={service.id} className="bg-white dark:bg-gray-800 rounded-card shadow-soft overflow-hidden group">
-                                <Image data-editable-id={`${service.id}-image`} src={adminDataService.getSingleContent(`${service.id}-image`, service.image)} alt={service.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                <Image data-editable-id={`${service.id}-image`} src={getContent(`${service.id}-image`, service.image)} alt={service.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
                                 <div className="p-6">
-                                    <h3 data-editable-id={`${service.id}-title`} className="font-bold text-lg text-text-main dark:text-white">{adminDataService.getSingleContent(`${service.id}-title`, service.title)}</h3>
-                                    <p data-editable-id={`${service.id}-desc`} className="text-muted dark:text-gray-400 text-sm mt-2">{adminDataService.getSingleContent(`${service.id}-desc`, service.description)}</p>
+                                    <h3 data-editable-id={`${service.id}-title`} className="font-bold text-lg text-text-main dark:text-white">{getContent(`${service.id}-title`, service.title)}</h3>
+                                    <p data-editable-id={`${service.id}-desc`} className="text-muted dark:text-gray-400 text-sm mt-2">{getContent(`${service.id}-desc`, service.description)}</p>
                                     <NavLink to={service.link} className="mt-4 inline-block text-primary font-semibold text-sm hover:underline">Află detalii &rarr;</NavLink>
                                 </div>
                             </div>
@@ -234,7 +264,7 @@ const HomePage: React.FC = () => {
                                 <Image
                                     key={partner.id}
                                     data-editable-id={partner.id}
-                                    src={adminDataService.getSingleContent(partner.id, partner.logoUrl)}
+                                    src={getContent(partner.id, partner.logoUrl)}
                                     alt={partner.name}
                                     className="h-8 w-32 object-contain"
                                 />
