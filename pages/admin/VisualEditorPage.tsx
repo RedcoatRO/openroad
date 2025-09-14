@@ -1,8 +1,9 @@
 
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
-import type { Testimonial } from '../../types';
+import type { Testimonial, TeamMember } from '../../types';
 import { PaletteIcon, XIcon } from '../../components/icons';
 import TeamManager from '../../components/admin/TeamManager'; // Importăm noul manager
 
@@ -22,6 +23,7 @@ const EditPanel: React.FC<{
     const handleSave = () => {
         setIsSaving(true);
         onSave(element.id, content);
+        // Nu închidem automat, lăsăm componenta părinte să decidă
         setIsSaving(false);
     };
 
@@ -147,6 +149,16 @@ const VisualEditorPage: React.FC = () => {
     const [editingElement, setEditingElement] = useState<{ id: string; type: 'text' | 'image'; content: string } | null>(null);
     const [currentPage, setCurrentPage] = useState(editablePages[0].path);
 
+    const reloadIframe = useCallback((forceReload: boolean = false) => {
+        if (iframeRef.current) {
+            if (forceReload) {
+                // Forțăm reîncărcarea completă a iframe-ului, adăugând un timestamp pentru a preveni caching-ul
+                const newSrc = `${currentPage.split('?')[0]}?t=${new Date().getTime()}`;
+                iframeRef.current.src = newSrc;
+            }
+        }
+    }, [currentPage]);
+
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
             const { type, payload } = event.data;
@@ -163,14 +175,6 @@ const VisualEditorPage: React.FC = () => {
         return () => window.removeEventListener('message', handleMessage);
     }, [isEditMode]);
 
-    const reloadIframe = (forceReload: boolean = false) => {
-        if (iframeRef.current) {
-            if (forceReload) {
-                // Forțăm reîncărcarea completă a iframe-ului
-                iframeRef.current.src = `${currentPage}?t=${new Date().getTime()}`;
-            }
-        }
-    };
     
     const toggleEditMode = () => {
         if (!isIframeReady) {
@@ -188,11 +192,39 @@ const VisualEditorPage: React.FC = () => {
     };
     
     const handleSaveElement = async (id: string, newContent: string) => {
-        await adminDataService.setContentOverride(id, newContent);
-        iframeRef.current?.contentWindow?.postMessage({
-            type: 'FL_PRO_UPDATE_CONTENT',
-            payload: { id, content: newContent }
-        }, '*');
+        const idParts = id.split('-'); // ex: ['team', '0', 'image']
+    
+        // Verifică dacă este un element de tip "team"
+        if (idParts[0] === 'team' && idParts.length === 3) {
+            try {
+                const index = parseInt(idParts[1], 10);
+                const field = idParts[2] as keyof TeamMember;
+    
+                // Preluăm lista curentă de membri
+                const currentTeam = await adminDataService.getTeamMembers();
+                if (currentTeam[index]) {
+                    // Modificăm câmpul specific
+                    (currentTeam[index] as any)[field] = newContent;
+                    // Salvăm întreaga listă actualizată
+                    await adminDataService.updateTeamMembers(currentTeam);
+                    // Reîncărcăm iframe-ul pentru a reflecta schimbarea datelor structurate
+                    reloadIframe(true);
+                } else {
+                    throw new Error(`Membru cu indexul ${index} nu a fost găsit.`);
+                }
+            } catch (error) {
+                console.error("Eroare la salvarea membrului echipei:", error);
+                alert("A apărut o eroare la salvarea datelor echipei.");
+            }
+        } else {
+            // Logica existentă pentru conținutul simplu (non-structurat)
+            await adminDataService.setContentOverride(id, newContent);
+            iframeRef.current?.contentWindow?.postMessage({
+                type: 'FL_PRO_UPDATE_CONTENT',
+                payload: { id, content: newContent }
+            }, '*');
+        }
+        
         setEditingElement(null);
     };
     

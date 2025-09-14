@@ -1,7 +1,8 @@
+
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
-import { Logo } from '../../components/icons';
+import { fallbackLogoUri } from '../../utils/siteData';
 
 /**
  * Pagina de Login care folosește acum sistemul de autentificare real Firebase.
@@ -57,7 +58,7 @@ const LoginPage: React.FC = () => {
         <div className="flex items-center justify-center min-h-screen bg-bg-admin-alt">
             <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-soft">
                 <div className="text-center">
-                    <Logo />
+                    <img src={fallbackLogoUri} alt="Open Road Leasing Logo" className="h-8 w-auto mx-auto" />
                     <h1 className="mt-4 text-2xl font-bold text-text-main">Autentificare Admin</h1>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">

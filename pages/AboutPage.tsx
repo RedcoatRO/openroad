@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import { TargetIcon, ArrowLeftRightIcon, ShieldCheckIcon, UsersIcon, CarIcon, CalendarIcon, StarIcon } from '../components/icons';
@@ -123,12 +124,12 @@ const AboutPage: React.FC = () => {
                         <h2 data-editable-id="about-team-title" id="team-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-team-title', 'Echipa din spatele succesului')}</h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {teamData.map(member => (
+                        {teamData.map((member, index) => (
                             <div key={member.name} className="bg-white dark:bg-gray-800 rounded-card shadow-soft text-center p-8">
-                                <Image src={member.image} alt={`Portret ${member.name}`} className="w-24 h-24 rounded-full mx-auto mb-4" />
-                                <h3 className="font-bold text-lg text-text-main dark:text-white">{member.name}</h3>
-                                <p className="text-sm text-primary font-medium">{member.role}</p>
-                                <p className="text-sm text-muted dark:text-gray-400 mt-4 italic">"{member.quote}"</p>
+                                <Image data-editable-id={`team-${index}-image`} src={member.image} alt={`Portret ${member.name}`} className="w-24 h-24 rounded-full mx-auto mb-4" />
+                                <h3 data-editable-id={`team-${index}-name`} className="font-bold text-lg text-text-main dark:text-white">{member.name}</h3>
+                                <p data-editable-id={`team-${index}-role`} className="text-sm text-primary font-medium">{member.role}</p>
+                                <p data-editable-id={`team-${index}-quote`} className="text-sm text-muted dark:text-gray-400 mt-4 italic">"{member.quote}"</p>
                             </div>
                         ))}
                     </div>
