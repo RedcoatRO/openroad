@@ -2,12 +2,19 @@ import React from 'react';
 
 type IconProps = React.SVGProps<SVGSVGElement>;
 
-// The width and height props have been removed from the SVG to allow styling via className.
+/**
+ * Componenta centralizată pentru logo-ul Open Road Leasing.
+ * SVG-ul este stilizat cu clase Tailwind pentru a se adapta automat
+ * la tema selectată (light/dark).
+ */
 const Logo: React.FC<IconProps> = (props) => (
     <svg viewBox="0 0 180 26" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <text x="0" y="20" style={{ fontFamily: 'Inter, sans-serif', fontSize: '20px', fontWeight: 'bold' }} fill="#0B5FFF">
+        {/* Folosim clase Tailwind pentru a permite adaptarea la tema dark. 
+            'font-sans' asigură consistența cu restul site-ului. */}
+        <text x="0" y="20" className="font-sans text-[20px] font-bold fill-primary">
             Open Road
-            <tspan fill="#6B7280"> Leasing</tspan>
+            {/* Partea "Leasing" își schimbă culoarea în dark mode */}
+            <tspan className="fill-muted dark:fill-gray-400"> Leasing</tspan>
         </text>
     </svg>
 );

@@ -1,51 +1,18 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { MailIcon, PhoneIcon, MapPinIcon } from './icons';
-import Image from './Image';
-import { adminDataService } from '../utils/adminDataService';
-import { ThemeContext } from '../contexts/ThemeContext';
+import Logo from './Logo'; // Am importat noua componentă Logo
 
 const Footer: React.FC = () => {
-    // Stări și logică pentru a face logoul dinamic și editabil, similar cu Header-ul.
-    const themeContext = useContext(ThemeContext);
-    const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
-
-    useEffect(() => {
-        // Ascultă modificările din Firestore pentru conținutul editabil.
-        const unsubscribe = adminDataService.listenToContentOverrides((data) => {
-            setContentOverrides(data || {});
-        });
-        return () => unsubscribe();
-    }, []);
-
-    const getContent = (id: string) => contentOverrides[id] || '';
-    const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg width='228' height='32' viewBox='0 0 228 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.text { font-family: Inter, sans-serif; font-size: 22px; font-weight: bold; }%3C/style%3E%3Ctext x='0' y='24' class='text' fill='%230B5FFF'%3EOpen Road %3Ctspan fill='%236B7280'%3ELeasing%3C/tspan%3E%3C/text%3E%3C/svg%3E";
-    const DEFAULT_LOGO_DARK = "data:image/svg+xml,%3Csvg width='228' height='32' viewBox='0 0 228 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.text { font-family: Inter, sans-serif; font-size: 22px; font-weight: bold; }%3C/style%3E%3Ctext x='0' y='24' class='text' fill='%230B5FFF'%3EOpen Road %3Ctspan fill='%239CA3AF'%3ELeasing%3C/tspan%3E%3C/text%3E%3C/svg%3E";
-
-
     return (
         <footer className="bg-bg-alt dark:bg-gray-800 text-muted dark:text-gray-400 pt-16 pb-8">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Col 1: Brand & Brief */}
                     <div className="space-y-4">
-                        {/* Logoul este acum o imagine editabilă, la fel ca în Header */}
-                        {themeContext?.theme === 'dark' ? (
-                            <Image
-                                src={getContent('site-logo-dark') || getContent('site-logo') || DEFAULT_LOGO_DARK || DEFAULT_LOGO}
-                                alt="Open Road Leasing"
-                                data-editable-id="site-logo-dark"
-                                className="h-8 w-auto"
-                            />
-                        ) : (
-                            <Image
-                                src={getContent('site-logo') || DEFAULT_LOGO}
-                                alt="Open Road Leasing"
-                                data-editable-id="site-logo"
-                                className="h-8 w-auto"
-                            />
-                        )}
+                        {/* Logoul este acum componenta statică, la fel ca în Header */}
+                        <Logo className="h-8 w-auto" />
                         <p className="text-sm">Partenerul tău pentru mobilitate predictibilă și eficientă.</p>
                     </div>
 

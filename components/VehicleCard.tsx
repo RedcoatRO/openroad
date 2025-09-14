@@ -10,7 +10,7 @@ interface VehicleCardProps {
     onCompareToggle?: (vehicle: Vehicle) => void;
     isInCompare?: boolean;
     onViewDetails: (vehicle: Vehicle) => void;
-    onStockAlertClick: (vehicle: Vehicle) => void; // Am adăugat prop-ul
+    onStockAlertClick: (vehicle: Vehicle) => void;
 }
 
 const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onQuoteClick, onCompareToggle, isInCompare, onViewDetails, onStockAlertClick }) => {
@@ -37,7 +37,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onQuoteClick, onComp
                     />
                 </div>
                 
-                {/* Indicator pentru stoc */}
                 {!vehicle.isAvailable && (
                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full backdrop-blur-sm">
                         Stoc epuizat
@@ -94,7 +93,6 @@ const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onQuoteClick, onComp
                 
                 <div className="border-t border-border dark:border-gray-700 pt-4 mt-auto">
                     <p className="text-sm text-muted dark:text-gray-400">de la <span className="text-2xl font-bold text-text-main dark:text-white">{vehicle.price} €/lună</span> + TVA</p>
-                    {/* Buton condițional: ofertă sau alertă stoc */}
                     {vehicle.isAvailable ? (
                         <button onClick={() => onQuoteClick(vehicle.model)} className="mt-4 w-full bg-primary text-white font-semibold py-2.5 rounded-btn hover:bg-primary-600 transition-colors">Solicită ofertă pentru acest model</button>
                     ) : (
