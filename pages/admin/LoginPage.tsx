@@ -1,28 +1,44 @@
-
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Logo } from '../../components/icons';
 
 /**
- * Pagina de Login (Pasul 1 al autentificării).
- * Utilizatorul introduce numele de utilizator și parola.
+ * Pagina de Login care folosește Firebase Authentication.
  */
 const LoginPage: React.FC = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        if (auth && auth.login(username, password)) {
-            // Dacă datele sunt corecte, navighează la pagina de 2FA
-            navigate('/admin/2fa');
-        } else {
-            setError('Nume de utilizator sau parolă incorecte.');
+        setIsLoading(true);
+
+        if (!auth) {
+            setError("Serviciul de autentificare nu este disponibil.");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            await auth.login(email, password);
+            // Navigarea la panoul de admin este gestionată automat de ProtectedRoute la schimbarea stării
+            navigate('/admin');
+        } catch (err: any) {
+            // Gestionează erorile specifice Firebase
+            if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+                setError('Email sau parolă incorecte.');
+            } else {
+                setError('A apărut o eroare la autentificare.');
+            }
+            console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -35,11 +51,11 @@ const LoginPage: React.FC = () => {
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-muted">Utilizator</label>
+                        <label className="block text-sm font-medium text-muted">Email</label>
                         <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                             className="w-full px-3 py-2 mt-1 border rounded-md"
                         />
@@ -56,8 +72,8 @@ const LoginPage: React.FC = () => {
                     </div>
                     {error && <p className="text-sm text-red-600">{error}</p>}
                     <div>
-                        <button type="submit" className="w-full py-2 px-4 bg-primary text-white font-semibold rounded-btn hover:bg-primary-600">
-                            Continuă
+                        <button type="submit" disabled={isLoading} className="w-full py-2 px-4 bg-primary text-white font-semibold rounded-btn hover:bg-primary-600 disabled:bg-gray-400">
+                            {isLoading ? 'Se autentifică...' : 'Autentificare'}
                         </button>
                     </div>
                 </form>

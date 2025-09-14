@@ -28,7 +28,6 @@ import StructuredData from './components/StructuredData';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import LoginPage from './pages/admin/LoginPage';
-import TwoFactorAuthPage from './pages/admin/TwoFactorAuthPage';
 
 // Importăm paginile de destinație
 import ServiceLeasingPage from './pages/ServiceLeasingPage';
@@ -269,7 +268,6 @@ const App: React.FC = () => {
 
               {/* Rutele publice pentru autentificare */}
               <Route path="/admin/login" element={<LoginPage />} />
-              <Route path="/admin/2fa" element={<TwoFactorAuthPage />} />
             </Routes>
           </HashRouter>
         </AuthProvider>

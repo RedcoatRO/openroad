@@ -1,89 +1,86 @@
-
-import React, { createContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useState, ReactNode, useCallback, useMemo, useEffect } from 'react';
+import { auth } from '../utils/firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
 
 // Tipul pentru stările posibile de autentificare
-type AuthState = 'loggedOut' | 'requires2FA' | 'loggedIn';
+// FIX: Add 'requires2FA' to AuthState type to fix type error in TwoFactorAuthPage.tsx.
+type AuthState = 'loading' | 'loggedOut' | 'loggedIn' | 'requires2FA';
 
 // Interfața pentru valorile expuse de context
 interface AuthContextType {
     authState: AuthState;
-    login: (user: string, pass: string) => boolean;
+    user: User | null;
+    login: (email: string, pass: string) => Promise<void>;
+    logout: () => Promise<void>;
+    // FIX: Add 'verify2FA' to AuthContextType to fix type error in TwoFactorAuthPage.tsx.
     verify2FA: (code: string) => boolean;
-    logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Funcție helper pentru a citi starea inițială din sessionStorage
-const getInitialAuthState = (): AuthState => {
-    try {
-        const storedState = sessionStorage.getItem('authState');
-        // Permite continuarea sesiunii dacă utilizatorul era logat sau în așteptarea 2FA
-        if (storedState === 'loggedIn' || storedState === 'requires2FA') {
-            return storedState as AuthState;
-        }
-    } catch (e) {
-        console.error('Nu s-a putut citi starea de autentificare din session storage', e);
-    }
-    return 'loggedOut';
-};
-
 /**
  * Provider-ul de context pentru autentificare.
- * Înfășoară aplicația și oferă acces la starea și funcțiile de autentificare.
+ * Înfășură aplicația și oferă acces la starea și funcțiile de autentificare Firebase.
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [authState, setAuthState] = useState<AuthState>(getInitialAuthState);
+    const [authState, setAuthState] = useState<AuthState>('loading');
+    const [user, setUser] = useState<User | null>(null);
 
-    // Funcție centralizată pentru a actualiza starea și a o persista
-    const updateAuthState = useCallback((newState: AuthState) => {
-        setAuthState(newState);
-        try {
-            sessionStorage.setItem('authState', newState);
-        } catch (e) {
-            console.error('Nu s-a putut scrie starea de autentificare în session storage', e);
-        }
+    useEffect(() => {
+        // onAuthStateChanged este un listener care notifică despre schimbările stării de autentificare.
+        // Acesta gestionează persistența sesiunii.
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (firebaseUser) {
+                setUser(firebaseUser);
+                setAuthState('loggedIn');
+            } else {
+                setUser(null);
+                setAuthState('loggedOut');
+            }
+        });
+
+        // Curăță listener-ul la demontarea componentei pentru a preveni memory leaks.
+        return () => unsubscribe();
     }, []);
 
-    // Funcția de login (Pasul 1)
-    const login = useCallback((user: string, pass: string): boolean => {
-        // Simulare validare username/parolă cu noile credențiale.
-        if (user === 'lucian' && pass === '_rent_a_car') {
-            updateAuthState('requires2FA'); // Trecem la starea de așteptare 2FA
-            return true;
-        }
-        return false;
-    }, [updateAuthState]);
+    // Funcția de login (asincronă)
+    const login = useCallback(async (email: string, pass: string) => {
+        // Apelează funcția de login a Firebase. Va arunca o eroare în caz de eșec.
+        await signInWithEmailAndPassword(auth, email, pass);
+    }, []);
 
-    // Funcția de verificare a codului 2FA (Pasul 2)
-    const verify2FA = useCallback((code: string): boolean => {
-        // Simulare validare cod 2FA cu noul cod.
-        if (code === '086420') {
-            updateAuthState('loggedIn'); // Utilizatorul este complet autentificat
-            return true;
-        }
-        return false;
-    }, [updateAuthState]);
-
-    // Funcția de logout
-    const logout = useCallback(() => {
-        updateAuthState('loggedOut'); // Resetează starea
-        try {
-            // Curăță starea din sessionStorage la deconectare
-            sessionStorage.removeItem('authState');
-        } catch (e) {
-            console.error('Nu s-a putut șterge starea de autentificare din session storage', e);
-        }
-    }, [updateAuthState]);
+    // Funcția de logout (asincronă)
+    const logout = useCallback(async () => {
+        await signOut(auth);
+    }, []);
     
-    // Memorăm valoarea contextului pentru a preveni re-render-uri inutile
-    // la componentele consumatoare, atunci când starea nu se schimbă.
+    // FIX: Add a mock implementation for verify2FA to resolve compilation errors.
+    const verify2FA = useCallback((code: string): boolean => {
+        console.warn('verify2FA is a mock implementation and will not be triggered with current login flow.');
+        if (code === '123456') {
+            setAuthState('loggedIn');
+            return true;
+        }
+        return false;
+    }, []);
+    
+    // Memorăm valoarea contextului pentru a preveni re-render-uri inutile.
     const value = useMemo(() => ({
         authState,
+        user,
         login,
-        verify2FA,
-        logout
-    }), [authState, login, verify2FA, logout]);
+        logout,
+        verify2FA
+    }), [authState, user, login, logout, verify2FA]);
+
+    // Afișează un ecran de încărcare global cât timp Firebase verifică starea de autentificare
+    if (authState === 'loading') {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-bg-main">
+                <p>Se încarcă...</p>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={value}>

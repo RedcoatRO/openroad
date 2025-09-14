@@ -1,4 +1,3 @@
-
 import React, { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -17,10 +16,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const auth = useContext(AuthContext);
     const location = useLocation();
 
-    // Verifică dacă contextul este disponibil
-    if (!auth) {
-        // Acest caz nu ar trebui să apară dacă aplicația este înfășurată corect în AuthProvider
-        return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    // Verifică dacă contextul este disponibil sau în starea de încărcare
+    if (!auth || auth.authState === 'loading') {
+        // Afișează un ecran de încărcare sau null cât timp se verifică starea de autentificare
+        return <div className="flex items-center justify-center min-h-screen">Se încarcă...</div>;
     }
 
     // Verifică dacă starea de autentificare este 'loggedIn'
