@@ -51,7 +51,29 @@ const ImageGalleryPage: React.FC = () => {
             await loadImages();
         } catch (err: any) {
             console.error("Eroare la procesarea imaginii:", err);
-            setError(err.message || "A apărut o eroare la încărcarea imaginii.");
+            // Traducem erorile Firebase în mesaje prietenoase
+            let errorMessage = "A apărut o eroare la încărcarea imaginii.";
+            if (err.code) { // Verificăm dacă este o eroare Firebase
+                 switch (err.code) {
+                    case 'storage/unauthorized':
+                        errorMessage = "Permisiuni insuficiente. Verificați regulile de securitate din Firebase Storage și configurația CORS.";
+                        break;
+                    case 'storage/canceled':
+                        errorMessage = "Încărcarea a fost anulată.";
+                        break;
+                    case 'storage/bucket-not-found':
+                         errorMessage = "Configurare greșită. 'storageBucket' din firebase.ts nu este corect.";
+                         break;
+                    case 'storage/unknown':
+                        errorMessage = "Eroare de rețea sau server. Verificați conexiunea la internet.";
+                        break;
+                    default:
+                        errorMessage = `Eroare necunoscută: ${err.message}`;
+                }
+            } else {
+                 errorMessage = err.message || errorMessage;
+            }
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
             event.target.value = '';
