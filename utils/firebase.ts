@@ -12,7 +12,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBUqJxhsk9hIhT-pzX0boHo_EXTGsziomQ",
   authDomain: "open-road-leasing.firebaseapp.com",
   projectId: "open-road-leasing",
-  storageBucket: "open-road-leasing.appspot.com", // Domeniul corect pentru SDK-ul JS
+  storageBucket: "open-road-leasing.firebasestorage.app", // Domeniul corect pentru SDK-ul JS
   messagingSenderId: "185421234096",
   appId: "1:185421234096:web:f7956a384d02d3c9c9a075"
 };
