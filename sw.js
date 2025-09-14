@@ -1,6 +1,6 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v2'; // Versiune cache
+const CACHE_NAME = 'openroad-leasing-cache-v3'; // Versiune cache incrementată
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 const APP_SHELL_FILES = [
