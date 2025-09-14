@@ -1,23 +1,30 @@
 
 import React from 'react';
-import Image from './Image';
 
 // Using a general props type for simplicity
 type IconProps = React.SVGProps<SVGSVGElement>;
-type ImgProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
-// FIX: Destructure `src` from props to avoid passing it down to the `Image` component.
-// The hardcoded `src` on `Image` would conflict with a potential `src` of type `string | Blob` from props.
-export const Logo: React.FC<ImgProps> = ({ src, ...props }) => (
-  <Image
-    data-editable-id="site-logo"
-    src="https://i.ibb.co/hZxt30j/logo.png"
-    alt="Open Road Logo"
-    className="h-8 w-auto"
-    width="134"
-    height="32"
-    {...props}
-  />
+// FIX: Added the missing Logo component, which was causing import errors.
+export const Logo: React.FC<IconProps> = (props) => (
+    <svg
+      width="190"
+      height="32"
+      viewBox="0 0 190 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <text
+        x="0"
+        y="24"
+        fontFamily="Inter, sans-serif"
+        fontSize="22"
+        fontWeight="bold"
+        fill="#0B5FFF"
+      >
+        Open Road <tspan fill="#6B7280">Leasing</tspan>
+      </text>
+    </svg>
 );
 
 export const CheckCircleIcon: React.FC<IconProps> = (props) => (

@@ -1,6 +1,6 @@
 // FIX: Import the `firebase` object to make its types available within this module.
 import { db, storage, firebase } from './firebase';
-import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, RequestStatus, Testimonial, UploadedImage, VehicleReview } from '../types';
+import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, RequestStatus, Testimonial, UploadedImage, VehicleReview, TeamMember } from '../types';
 
 /**
  * Serviciu de date care interacționează direct cu serviciile Firebase (Firestore, Storage)
@@ -114,7 +114,7 @@ export const adminDataService = {
         await logAction('delete_user', `A șters utilizatorul cu ID: ${userId}`);
     },
 
-    // --- CMS (FAQ, Testimoniale, Parteneri) ---
+    // --- CMS (FAQ, Testimoniale, Parteneri, Echipă) ---
     async getFAQs(): Promise<FAQItem[]> {
         const snapshot = await db.collection('faqs').get();
         return mapSnapshotToData<FAQItem>(snapshot);
@@ -178,6 +178,16 @@ export const adminDataService = {
     async updatePartners(partners: { id: string, logoUrl: string, name: string }[]): Promise<void> {
         await db.collection('content').doc('partners').set({ list: partners });
         await logAction('update_partners', `A actualizat lista de parteneri.`);
+    },
+
+    async getTeamMembers(): Promise<TeamMember[]> {
+        const docRef = await db.collection('content').doc('teamMembers').get();
+        return docRef.exists ? (docRef.data()?.list as TeamMember[] || []) : [];
+    },
+
+    async updateTeamMembers(teamMembers: TeamMember[]): Promise<void> {
+        await db.collection('content').doc('teamMembers').set({ list: teamMembers });
+        await logAction('update_team_members', `A actualizat lista membrilor echipei.`);
     },
 
     // --- Audit Log ---

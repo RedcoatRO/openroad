@@ -39,6 +39,13 @@ export interface Testimonial {
   company: string;
 }
 
+export interface TeamMember {
+  name: string;
+  role: string;
+  quote: string;
+  image: string;
+}
+
 export interface FleetItem {
   vehicleId: string; // Modificat din number în string
   quantity: number;

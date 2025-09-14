@@ -1,5 +1,6 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Vehicle } from '../types';
 import { CheckCircleIcon, ChevronDownIcon } from '../components/icons';
@@ -7,6 +8,7 @@ import ComparisonModal from '../components/ComparisonModal';
 import { adminDataService } from '../utils/adminDataService';
 import VehicleCard from '../components/VehicleCard';
 import Breadcrumbs from '../components/Breadcrumbs'; 
+import { ContentContext } from '../contexts/ContentContext';
 
 interface OutletContextType {
     onQuoteClick: (model?: string) => void;
@@ -54,8 +56,9 @@ const CompareBar: React.FC<{
 
 const VehiclesPage: React.FC = () => {
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
+    const { getContent, isLoading: isContentLoading } = useContext(ContentContext)!;
     const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isVehiclesLoading, setIsVehiclesLoading] = useState(true);
     const [comparisonList, setComparisonList] = useState<Vehicle[]>([]);
     const [isCompareModalOpen, setCompareModalOpen] = useState(false);
     
@@ -74,7 +77,7 @@ const VehiclesPage: React.FC = () => {
             } catch (error) {
                 console.error("Eroare la încărcarea vehiculelor:", error);
             } finally {
-                setIsLoading(false);
+                setIsVehiclesLoading(false);
             }
         };
         fetchVehicles();
@@ -147,14 +150,15 @@ const VehiclesPage: React.FC = () => {
     const handleClearCompare = () => setComparisonList([]);
 
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
-    
+    const isLoading = isContentLoading || isVehiclesLoading;
+
     return (
         <>
             <section className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: "url('https://picsum.photos/seed/road/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold">Mașini disponibile</h1>
-                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Alege vehiculele potrivite pentru compania ta.</p>
+                    <h1 data-editable-id="vehicles-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('vehicles-hero-title', 'Mașini disponibile')}</h1>
+                    <p data-editable-id="vehicles-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('vehicles-hero-subtitle', 'Alege vehiculele potrivite pentru compania ta.')}</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>
@@ -224,7 +228,7 @@ const VehiclesPage: React.FC = () => {
             
             <section className="bg-bg-alt dark:bg-gray-800">
                 <div className="container mx-auto px-4 py-16">
-                    <h2 className="text-2xl font-bold text-center text-text-main dark:text-white mb-8">Ce este inclus în costul lunar?</h2>
+                    <h2 data-editable-id="vehicles-benefits-title" className="text-2xl font-bold text-center text-text-main dark:text-white mb-8">{getContent('vehicles-benefits-title', 'Ce este inclus în costul lunar?')}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
                         {benefitsData.map(benefit => (
                             <div key={benefit.text} className="flex flex-col items-center">
@@ -239,8 +243,8 @@ const VehiclesPage: React.FC = () => {
             <section className="relative bg-cover bg-center text-white" style={{ backgroundImage: "url('https://picsum.photos/seed/cityroad/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                  <div className="relative container mx-auto px-4 py-20 text-center">
-                    <h2 className="text-4xl font-bold">Găsește mașina perfectă pentru echipa ta.</h2>
-                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Contactează-ne și primești o ofertă personalizată în 24–48h.</p>
+                    <h2 data-editable-id="vehicles-cta-title" className="text-4xl font-bold">{getContent('vehicles-cta-title', 'Găsește mașina perfectă pentru echipa ta.')}</h2>
+                    <p data-editable-id="vehicles-cta-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('vehicles-cta-subtitle', 'Contactează-ne și primești o ofertă personalizată în 24–48h.')}</p>
                     <button onClick={() => onQuoteClick()} className="mt-8 bg-primary text-white font-bold px-8 py-3 rounded-btn hover:bg-primary-600 transition-colors">Solicită ofertă</button>
                 </div>
             </section>

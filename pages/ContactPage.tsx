@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useContext } from 'react';
 import { MailIcon, PhoneIcon, MapPinIcon, ChevronDownIcon } from '../components/icons';
 import { formatCUI, validateCUI, formatPhone, validatePhone } from '../utils/formUtils';
 import Breadcrumbs from '../components/Breadcrumbs';
 import InteractiveMap from '../components/InteractiveMap';
 import { adminDataService } from '../utils/adminDataService';
 import type { FAQItem } from '../types';
+import { ContentContext } from '../contexts/ContentContext';
 
 type FormErrors = {
     numeFirma?: string;
@@ -37,6 +39,7 @@ const FAQAccordionItem: React.FC<{ item: FAQItem }> = ({ item }) => {
 };
 
 const ContactPage: React.FC = () => {
+    const { getContent, isLoading: isContentLoading } = useContext(ContentContext)!;
     const [formData, setFormData] = useState({
         numeFirma: '', cui: '', persoanaContact: '', email: '', telefon: '',
         tipSolicitare: 'Ofertă flotă', mesaj: '', gdpr: false,
@@ -87,13 +90,19 @@ const ContactPage: React.FC = () => {
     const labelClass = "block text-sm font-medium text-muted dark:text-gray-400 mb-1";
     const errorTextClass = "text-xs text-red-500 mt-1";
 
+    const isLoading = isContentLoading || isLoadingFAQs;
+
+    if (isLoading) {
+        return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
+    }
+
     return (
         <>
             <section className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: "url('https://picsum.photos/seed/contact/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold">Contact</h1>
-                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Suntem aici să te ajutăm să îți construiești flota.</p>
+                    <h1 data-editable-id="contact-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('contact-hero-title', 'Contact')}</h1>
+                    <p data-editable-id="contact-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('contact-hero-subtitle', 'Suntem aici să te ajutăm să îți construiești flota.')}</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>
@@ -110,7 +119,7 @@ const ContactPage: React.FC = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">Trimite-ne o solicitare</h2>
+                                    <h2 data-editable-id="contact-form-title" className="text-2xl font-bold text-text-main dark:text-white mb-6">{getContent('contact-form-title', 'Trimite-ne o solicitare')}</h2>
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         {/* ... (câmpuri formular existente, neschimbate) ... */}
                                          <div>
@@ -131,13 +140,13 @@ const ContactPage: React.FC = () => {
             {/* Map Section */}
             <section>
                  <InteractiveMap />
-                 <p className="text-center py-4 text-sm text-muted dark:text-gray-400 bg-bg-alt dark:bg-gray-900">Ne găsești ușor la sediul nostru central.</p>
+                 <p data-editable-id="contact-map-subtitle" className="text-center py-4 text-sm text-muted dark:text-gray-400 bg-bg-alt dark:bg-gray-900">{getContent('contact-map-subtitle', 'Ne găsești ușor la sediul nostru central.')}</p>
             </section>
             
             {/* Secțiune nouă FAQ */}
             <section className="py-20">
                 <div className="container mx-auto px-4 max-w-3xl">
-                    <h2 className="text-3xl font-bold text-center text-text-main dark:text-white mb-8">Întrebări frecvente</h2>
+                    <h2 data-editable-id="contact-faq-title" className="text-3xl font-bold text-center text-text-main dark:text-white mb-8">{getContent('contact-faq-title', 'Întrebări frecvente')}</h2>
                     {isLoadingFAQs ? (
                         <p className="text-center text-muted">Se încarcă întrebările...</p>
                     ) : faqItems.length > 0 ? (
