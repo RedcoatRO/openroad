@@ -1,12 +1,9 @@
 
-
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { GiftIcon, Share2Icon, CheckCircleIcon } from '../components/icons';
-import { ContentContext } from '../contexts/ContentContext';
 
 const ReferralPage: React.FC = () => {
-    const { getContent, isLoading } = useContext(ContentContext)!;
     const [formData, setFormData] = useState({
         referrerName: '', referrerCompany: '', referrerEmail: '',
         referredName: '', referredCompany: '', referredEmail: '',
@@ -26,18 +23,14 @@ const ReferralPage: React.FC = () => {
     
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
     const labelClass = "block text-xs font-medium text-muted dark:text-gray-400 mb-1";
-    
-    if (isLoading) {
-        return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
-    }
 
     return (
         <>
             {/* Hero Section */}
             <section className="bg-bg-alt dark:bg-gray-800 py-24">
                 <div className="container mx-auto px-4 text-center">
-                    <h1 data-editable-id="referral-hero-title" className="text-4xl md:text-5xl font-bold text-text-main dark:text-white">{getContent('referral-hero-title', 'Program de Recomandare')}</h1>
-                    <p data-editable-id="referral-hero-subtitle" className="mt-4 text-lg text-muted dark:text-gray-400 max-w-2xl mx-auto">{getContent('referral-hero-subtitle', 'Recomandă-ne și câștigă! Parteneriatele de succes merită recompensate.')}</p>
+                    <h1 className="text-4xl md:text-5xl font-bold text-text-main dark:text-white">Program de Recomandare</h1>
+                    <p className="mt-4 text-lg text-muted dark:text-gray-400 max-w-2xl mx-auto">Recomandă-ne și câștigă! Parteneriatele de succes merită recompensate.</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>
@@ -46,7 +39,7 @@ const ReferralPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 data-editable-id="referral-how-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('referral-how-title', 'Cum funcționează? Simplu în 3 pași.')}</h2>
+                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Cum funcționează? Simplu în 3 pași.</h2>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8 text-center">
                         <div>
@@ -79,7 +72,7 @@ const ReferralPage: React.FC = () => {
                             </div>
                         ) : (
                             <>
-                                <h2 data-editable-id="referral-form-title" className="text-2xl font-bold text-center text-text-main dark:text-white mb-8">{getContent('referral-form-title', 'Trimite o recomandare')}</h2>
+                                <h2 className="text-2xl font-bold text-center text-text-main dark:text-white mb-8">Trimite o recomandare</h2>
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Referrer Details */}
                                     <div>

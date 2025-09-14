@@ -1,26 +1,17 @@
 
-import React, { useContext } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MailIcon, PhoneIcon, MapPinIcon } from './icons';
-import { ContentContext } from '../contexts/ContentContext';
-import { fallbackLogoUri } from '../utils/siteData';
+import { Logo, MailIcon, PhoneIcon, MapPinIcon } from './icons';
 
 const Footer: React.FC = () => {
-    const contentContext = useContext(ContentContext);
-
     return (
         <footer className="bg-bg-alt dark:bg-gray-800 text-muted dark:text-gray-400 pt-16 pb-8">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Col 1: Brand & Brief */}
                     <div className="space-y-4">
-                        <img 
-                            data-editable-id="site-logo" 
-                            src={contentContext?.getContent('site-logo', fallbackLogoUri)} 
-                            alt="Open Road Leasing Logo" 
-                            className="h-8 w-auto" 
-                        />
-                        <p data-editable-id="footer-brief" className="text-sm">{contentContext?.getContent('footer-brief', 'Partenerul tău pentru mobilitate predictibilă și eficientă.')}</p>
+                        <Logo />
+                        <p className="text-sm">Partenerul tău pentru mobilitate predictibilă și eficientă.</p>
                     </div>
 
                     {/* Col 2: Linkuri */}

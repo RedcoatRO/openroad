@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { SunIcon, MoonIcon, HeartIcon, SearchIcon } from './icons';
+import { Logo, SunIcon, MoonIcon, HeartIcon, SearchIcon } from './icons';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { FavoritesContext } from '../contexts/FavoritesContext';
-import { ContentContext } from '../contexts/ContentContext';
-import { fallbackLogoUri } from '../utils/siteData';
 import SearchBar from './SearchBar';
 
 interface HeaderProps {
@@ -47,7 +45,6 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const favoritesContext = useContext(FavoritesContext);
-    const contentContext = useContext(ContentContext);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -77,12 +74,7 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
             <div className={`container mx-auto px-4 transition-all duration-300 ${isScrolled ? 'py-3' : 'py-5'}`}>
                 <div className="flex justify-between items-center">
                     <NavLink to="/" aria-label="Open Road Leasing Homepage">
-                         <img 
-                            data-editable-id="site-logo" 
-                            src={contentContext?.getContent('site-logo', fallbackLogoUri)} 
-                            alt="Open Road Leasing Logo" 
-                            className="h-8 w-auto" 
-                        />
+                        <Logo />
                     </NavLink>
                     
                     <nav className="hidden lg:flex items-center space-x-6">

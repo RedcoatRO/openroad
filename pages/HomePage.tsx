@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useOutletContext } from 'react-router-dom';
 import type { Testimonial, Vehicle } from '../types';
 import { CarIcon, ClockIcon, ShieldCheckIcon, StarIcon, CheckCircleIcon, EuroIcon, WrenchIcon, PiggyBankIcon } from '../components/icons';
 import Image from '../components/Image';
 import VehicleCard from '../components/VehicleCard';
 import { adminDataService } from '../utils/adminDataService';
-import { ContentContext } from '../contexts/ContentContext';
 
 interface OutletContextType {
     onQuoteClick: (model?: string) => void;
@@ -55,20 +54,19 @@ const servicesData = [
 const HomePage: React.FC = () => {
     const [activeFilter, setActiveFilter] = useState('Toate');
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
-    
-    // Utilizează contextul global pentru conținutul editabil
-    const { getContent, isLoading: isContentLoading } = useContext(ContentContext)!;
 
-    // Stări pentru datele dinamice specifice paginii
+    // Stări pentru datele dinamice și pentru starea de încărcare
     const [vehiclesForHomepage, setVehiclesForHomepage] = useState<Vehicle[]>([]);
+    const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
     const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
     const [partners, setPartners] = useState<{ id: string, logoUrl: string, name: string }[]>([]);
-    const [isStaticDataLoading, setIsStaticDataLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // useEffect pentru a încărca datele statice (care nu sunt în 'content')
+    // useEffect pentru a încărca datele
     useEffect(() => {
+        setIsLoading(true);
+        // Funcție pentru a încărca datele care nu necesită actualizare în timp real
         const fetchStaticData = async () => {
-            setIsStaticDataLoading(true);
             try {
                 const [vehicles, testimonials, partnersData] = await Promise.all([
                     adminDataService.getVehicles(),
@@ -81,17 +79,27 @@ const HomePage: React.FC = () => {
                 setPartners(partnersData);
             } catch (error) {
                 console.error("Eroare la încărcarea datelor statice pentru pagina principală:", error);
-            } finally {
-                setIsStaticDataLoading(false);
             }
         };
 
         fetchStaticData();
+
+        // Stabilește un listener în timp real pentru conținutul editabil
+        const unsubscribe = adminDataService.listenToContentOverrides((content) => {
+            setContentOverrides(content);
+            console.log('Content Overrides updated for HomePage:', content);
+            // Odată ce avem conținutul, putem opri starea de încărcare
+            setIsLoading(false);
+        });
+
+        // Curăță listener-ul la demontarea componentei pentru a preveni memory leaks
+        return () => unsubscribe();
     }, []);
 
-    // Starea de încărcare combinată
-    const isLoading = isContentLoading || isStaticDataLoading;
+    // Funcție ajutătoare pentru a obține conținutul, cu fallback la un string gol
+    const getContent = (id: string) => contentOverrides[id] || '';
 
+    // Afișează o stare de încărcare cât timp datele sunt aduse de la server
     if (isLoading) {
         return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
     }
@@ -99,12 +107,12 @@ const HomePage: React.FC = () => {
     return (
         <>
             {/* Hero Section */}
-            <section data-editable-id="home-hero-bg" className="relative h-[600px] bg-cover bg-center text-white flex items-center" style={{ backgroundImage: `url('${getContent('home-hero-bg', 'https://images.unsplash.com/photo-1553440569-224b86564694?q=80&w=1920&h=600&fit=crop&fm=jpg')}')` }}>
+            <section data-editable-id="home-hero-bg" className="relative h-[600px] bg-cover bg-center text-white flex items-center" style={{ backgroundImage: `url('${getContent('home-hero-bg')}')` }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-600/40"></div>
                 <div className="relative container mx-auto px-4 z-10">
                     <div className="max-w-3xl">
-                        <h1 data-editable-id="home-hero-title" className="text-4xl md:text-5xl font-bold leading-tight">{getContent('home-hero-title', 'Partenerul tău pentru mobilitate predictibilă și eficientă.')}</h1>
-                        <p data-editable-id="home-hero-subtitle" className="mt-4 text-lg md:text-xl text-blue-100">{getContent('home-hero-subtitle', 'Oferim soluții B2B de închiriere pe termen lung și leasing operațional, adaptate perfect nevoilor companiei tale.')}</p>
+                        <h1 data-editable-id="home-hero-title" className="text-4xl md:text-5xl font-bold leading-tight">{getContent('home-hero-title')}</h1>
+                        <p data-editable-id="home-hero-subtitle" className="mt-4 text-lg md:text-xl text-blue-100">{getContent('home-hero-subtitle')}</p>
                         <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                             <button onClick={() => onQuoteClick()} className="bg-primary text-white font-semibold px-8 py-3 rounded-btn hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">Solicită ofertă</button>
                             <a href="#catalog" className="bg-white/20 backdrop-blur-sm text-white font-semibold px-8 py-3 rounded-btn border border-white/50 hover:bg-white/30 transition-colors text-center">Vezi oferta de mașini</a>
@@ -137,8 +145,8 @@ const HomePage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 data-editable-id="home-benefits-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-benefits-title', 'Mobilitate fără bătăi de cap')}</h2>
-                        <p data-editable-id="home-benefits-subtitle" className="mt-4 text-muted dark:text-gray-400">{getContent('home-benefits-subtitle', 'Beneficiile unui parteneriat cu Open Road Leasing merg dincolo de simple închirieri.')}</p>
+                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Mobilitate fără bătăi de cap</h2>
+                        <p className="mt-4 text-muted dark:text-gray-400">Beneficiile unui parteneriat cu Open Road Leasing merg dincolo de simple închirieri.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {benefitsData.map(benefit => (
@@ -159,13 +167,13 @@ const HomePage: React.FC = () => {
                          <div className="lg:w-1/2">
                             <Image 
                                 data-editable-id="home-about-image"
-                                src={getContent('home-about-image', 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&h=600&fit=crop&fm=jpg')} 
+                                src={getContent('home-about-image')} 
                                 alt="Echipa Open Road Leasing" 
                                 className="rounded-card shadow-md" />
                          </div>
                          <div className="lg:w-1/2">
-                            <h2 data-editable-id="home-about-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-about-title', 'Peste 10 ani de experiență în mobilitate corporate')}</h2>
-                            <p data-editable-id="home-about-text" className="mt-4 text-muted dark:text-gray-400">{getContent('home-about-text', 'La Open Road Leasing, înțelegem că fiecare afacere are nevoi unice. De aceea, oferim consultanță dedicată pentru a construi flota perfectă, de la selecția vehiculelor până la managementul complet al acestora, permițându-vă să vă concentrați pe ceea ce contează cu adevărat: creșterea afacerii dumneavoastră.')}</p>
+                            <h2 data-editable-id="home-about-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-about-title')}</h2>
+                            <p data-editable-id="home-about-text" className="mt-4 text-muted dark:text-gray-400">{getContent('home-about-text')}</p>
                             <NavLink to="/despre-noi" className="mt-6 inline-block text-primary font-semibold hover:underline">Află mai multe despre noi &rarr;</NavLink>
                          </div>
                     </div>
@@ -176,7 +184,7 @@ const HomePage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 data-editable-id="home-services-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-services-title', 'Servicii complete pentru mobilitatea afacerii tale')}</h2>
+                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Servicii complete pentru mobilitatea afacerii tale</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {servicesData.map(service => (
@@ -197,8 +205,8 @@ const HomePage: React.FC = () => {
             <section id="catalog" className="py-20 bg-bg-alt dark:bg-gray-800">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 data-editable-id="home-catalog-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-catalog-title', 'Descoperă flota noastră')}</h2>
-                        <p data-editable-id="home-catalog-subtitle" className="mt-4 text-muted dark:text-gray-400">{getContent('home-catalog-subtitle', 'O selecție de vehicule noi, perfect adaptate nevoilor de business.')}</p>
+                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Descoperă flota noastră</h2>
+                        <p className="mt-4 text-muted dark:text-gray-400">O selecție de vehicule noi, perfect adaptate nevoilor de business.</p>
                     </div>
                     <div className="flex justify-center space-x-2 mb-8">
                         {['Toate', 'Sedan', 'SUV', 'Electrică'].map(filter => (
@@ -231,8 +239,8 @@ const HomePage: React.FC = () => {
             {/* Mid-page CTA */}
             <section className="bg-primary text-white">
                 <div className="container mx-auto px-4 py-16 text-center">
-                    <h2 data-editable-id="home-mid-cta-title" className="text-3xl font-bold">{getContent('home-mid-cta-title', 'Nu știi ce flotă ți se potrivește?')}</h2>
-                    <p data-editable-id="home-mid-cta-subtitle" className="mt-4 max-w-2xl mx-auto text-blue-100">{getContent('home-mid-cta-subtitle', 'Îți oferim gratuit o analiză de costuri și recomandări personalizate.')}</p>
+                    <h2 className="text-3xl font-bold">Nu știi ce flotă ți se potrivește?</h2>
+                    <p className="mt-4 max-w-2xl mx-auto text-blue-100">Îți oferim gratuit o analiză de costuri și recomandări personalizate.</p>
                     <NavLink to="/programare" className="mt-8 inline-block bg-white text-primary font-bold px-8 py-3 rounded-btn hover:bg-blue-50 transition-colors">
                         Programează o consultanță
                     </NavLink>
@@ -243,7 +251,7 @@ const HomePage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                      <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 data-editable-id="home-testimonials-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('home-testimonials-title', 'Clienții noștri ne recomandă')}</h2>
+                        <h2 className="text-3xl font-bold text-text-main dark:text-white">Clienții noștri ne recomandă</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                        {testimonialsData.map((testimonial, index) => (
@@ -275,8 +283,8 @@ const HomePage: React.FC = () => {
             <section className="relative bg-cover bg-center text-white" style={{ backgroundImage: "url('https://picsum.photos/seed/cityroad/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                  <div className="relative container mx-auto px-4 py-20 text-center">
-                    <h2 data-editable-id="home-closing-cta-title" className="text-4xl font-bold">{getContent('home-closing-cta-title', 'Construiește-ți flota azi!')}</h2>
-                    <p data-editable-id="home-closing-cta-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('home-closing-cta-subtitle', 'Trimite-ne cerințele și revenim cu o ofertă în 24–48h.')}</p>
+                    <h2 className="text-4xl font-bold">Construiește-ți flota azi!</h2>
+                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Trimite-ne cerințele și revenim cu o ofertă în 24–48h.</p>
                     <button onClick={() => onQuoteClick()} className="mt-8 bg-primary text-white font-bold px-8 py-3 rounded-btn hover:bg-primary-600 border-2 border-primary hover:border-primary-600 transition-colors">Solicită ofertă</button>
                 </div>
             </section>

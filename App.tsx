@@ -44,7 +44,6 @@ import ReportsPage from './pages/admin/ReportsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import VisualEditorPage from './pages/admin/VisualEditorPage';
 import ImageGalleryPage from './pages/admin/ImageGalleryPage';
-import { ContentProvider } from './contexts/ContentContext';
 
 const MainLayout: React.FC = () => {
     const [isModalOpen, setModalOpen] = useState(false);
@@ -188,34 +187,32 @@ const MainLayout: React.FC = () => {
 
 
     return (
-        <ContentProvider>
-            <div className="font-sans text-text-main bg-bg-main dark:bg-gray-900 transition-colors duration-300">
-                <StructuredData schema={organizationSchema} />
-                <Header onQuoteClick={() => setModalOpen(true)} onFavoritesClick={() => setFavoritesModalOpen(true)} />
-                <main>
-                    <Outlet context={outletContext} />
-                </main>
-                <Footer />
-                <QuoteModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
-                <FavoritesModal 
-                    isOpen={isFavoritesModalOpen} 
-                    onClose={() => setFavoritesModalOpen(false)} 
-                    onQuoteClick={(model) => setModalOpen(true)}
-                    onViewDetails={handleViewDetails}
-                    onStockAlertClick={handleStockAlertClick}
-                />
-                <VehicleDetailModal 
-                    isOpen={isDetailModalOpen} 
-                    onClose={() => setDetailModalOpen(false)} 
-                    vehicle={selectedVehicle}
-                />
-                <StockAlertModal
-                    isOpen={isStockAlertModalOpen}
-                    onClose={() => setStockAlertModalOpen(false)}
-                    vehicle={stockAlertVehicle}
-                />
-            </div>
-        </ContentProvider>
+        <div className="font-sans text-text-main bg-bg-main dark:bg-gray-900 transition-colors duration-300">
+            <StructuredData schema={organizationSchema} />
+            <Header onQuoteClick={() => setModalOpen(true)} onFavoritesClick={() => setFavoritesModalOpen(true)} />
+            <main>
+                <Outlet context={outletContext} />
+            </main>
+            <Footer />
+            <QuoteModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+            <FavoritesModal 
+                isOpen={isFavoritesModalOpen} 
+                onClose={() => setFavoritesModalOpen(false)} 
+                onQuoteClick={(model) => setModalOpen(true)}
+                onViewDetails={handleViewDetails}
+                onStockAlertClick={handleStockAlertClick}
+            />
+            <VehicleDetailModal 
+                isOpen={isDetailModalOpen} 
+                onClose={() => setDetailModalOpen(false)} 
+                vehicle={selectedVehicle}
+            />
+            <StockAlertModal
+                isOpen={isStockAlertModalOpen}
+                onClose={() => setStockAlertModalOpen(false)}
+                vehicle={stockAlertVehicle}
+            />
+        </div>
     );
 };
 

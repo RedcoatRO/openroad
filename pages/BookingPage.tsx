@@ -1,17 +1,14 @@
 
-
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import BookingCalendar from '../components/BookingCalendar';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { ClockIcon, UsersIcon, PhoneIcon, MailIcon } from '../components/icons';
 import { adminDataService } from '../utils/adminDataService';
-import { ContentContext } from '../contexts/ContentContext';
 
 // Intervale orare disponibile (hardcodate pentru demonstrație)
 const timeSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
 const BookingPage: React.FC = () => {
-    const { getContent, isLoading: isContentLoading } = useContext(ContentContext)!;
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [formData, setFormData] = useState({ name: '', company: '', email: '', phone: '' });
@@ -54,10 +51,6 @@ const BookingPage: React.FC = () => {
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
     const labelClass = "block text-xs font-medium text-muted dark:text-gray-400 mb-1";
 
-    if (isContentLoading) {
-        return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
-    }
-
     if (isSubmitted) {
         return (
             <div className="container mx-auto px-4 py-20 text-center">
@@ -75,8 +68,8 @@ const BookingPage: React.FC = () => {
             <section className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: "url('https://picsum.photos/seed/booking/1920/1080')" }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 data-editable-id="booking-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('booking-hero-title', 'Programează o consultație')}</h1>
-                    <p data-editable-id="booking-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('booking-hero-subtitle', 'Discută cu un expert despre nevoile flotei tale.')}</p>
+                    <h1 className="text-4xl md:text-5xl font-bold">Programează o consultație</h1>
+                    <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">Discută cu un expert despre nevoile flotei tale.</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>

@@ -1,10 +1,8 @@
 
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Testimonial } from '../../types';
 import { PaletteIcon, XIcon } from '../../components/icons';
-import TeamManager from '../../components/admin/TeamManager'; // Importăm noul manager
 
 // Componenta pentru panoul de editare a unui element (text sau imagine)
 const EditPanel: React.FC<{
@@ -166,8 +164,7 @@ const VisualEditorPage: React.FC = () => {
     const reloadIframe = (forceReload: boolean = false) => {
         if (iframeRef.current) {
             if (forceReload) {
-                // Forțăm reîncărcarea completă a iframe-ului
-                iframeRef.current.src = `${currentPage}?t=${new Date().getTime()}`;
+                iframeRef.current.src = iframeRef.current.src;
             }
         }
     };
@@ -243,16 +240,12 @@ const VisualEditorPage: React.FC = () => {
                         onClose={() => setEditingElement(null)}
                     />
                 )}
-                
-                <div className="flex-grow pt-4 border-t overflow-y-auto space-y-4">
-                    {currentPage === '/' && (
-                        <TestimonialManager onContentUpdate={() => reloadIframe(true)} />
-                    )}
-                    {currentPage === '/#/despre-noi' && (
-                        <TeamManager onContentUpdate={() => reloadIframe(true)} />
-                    )}
-                </div>
 
+                {currentPage === '/' && (
+                    <div className="flex-grow pt-4 border-t overflow-y-auto">
+                        <TestimonialManager onContentUpdate={() => reloadIframe(true)} />
+                    </div>
+                )}
             </aside>
 
             <main className="flex-1 bg-gray-300">
