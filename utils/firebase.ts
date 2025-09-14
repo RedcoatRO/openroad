@@ -7,12 +7,12 @@ import { getAuth } from "firebase/auth";
 // TODO: înlocuiește acest obiect cu configurația proiectului tău Firebase
 // Poți găsi aceste date în consola Firebase > Project Settings > General.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBUqJxhsk9hIhT-pzX0boHo_EXTGsziomQ",
+  authDomain: "open-road-leasing.firebaseapp.com",
+  projectId: "open-road-leasing",
+  storageBucket: "open-road-leasing.firebasestorage.app",
+  messagingSenderId: "185421234096",
+  appId: "1:185421234096:web:f7956a384d02d3c9c9a075"
 };
 
 // Inițializează aplicația Firebase
