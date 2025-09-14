@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Logo, SunIcon, MoonIcon, HeartIcon, SearchIcon } from './icons';
+import { SunIcon, MoonIcon, HeartIcon, SearchIcon } from './icons';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { FavoritesContext } from '../contexts/FavoritesContext';
 import SearchBar from './SearchBar';
+import Image from './Image';
+import { adminDataService } from '../utils/adminDataService';
 
 interface HeaderProps {
     onQuoteClick: () => void;
@@ -45,17 +47,38 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const favoritesContext = useContext(FavoritesContext);
+    const themeContext = useContext(ThemeContext);
+
+    // Stare pentru a stoca conținutul editabil (ex: URL-ul logoului) din Firestore.
+    const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 10);
         };
         window.addEventListener('scroll', handleScroll);
+        
+        // Stabilește un listener în timp real care actualizează starea
+        // de fiecare dată când datele din `content/overrides` se schimbă în Firestore.
+        const unsubscribe = adminDataService.listenToContentOverrides((data) => {
+            setContentOverrides(data || {});
+        });
+        
+        // Funcția de cleanup care elimină listener-ul la demontarea componentei
+        // pentru a preveni memory leaks.
         return () => {
             window.removeEventListener('scroll', handleScroll);
+            unsubscribe();
         };
     }, []);
     
+    // Funcție ajutătoare pentru a obține conținutul unui element editabil.
+    const getContent = (id: string) => contentOverrides[id] || '';
+
+    // URL-uri SVG sub formă de data URI, folosite ca fallback dacă nu există un logo setat în admin.
+    const DEFAULT_LOGO = "data:image/svg+xml,%3Csvg width='228' height='32' viewBox='0 0 228 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.text { font-family: Inter, sans-serif; font-size: 22px; font-weight: bold; }%3C/style%3E%3Ctext x='0' y='24' class='text' fill='%230B5FFF'%3EOpen Road %3Ctspan fill='%236B7280'%3ELeasing%3C/tspan%3E%3C/text%3E%3C/svg%3E";
+    const DEFAULT_LOGO_DARK = "data:image/svg+xml,%3Csvg width='228' height='32' viewBox='0 0 228 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3E.text { font-family: Inter, sans-serif; font-size: 22px; font-weight: bold; }%3C/style%3E%3Ctext x='0' y='24' class='text' fill='%230B5FFF'%3EOpen Road %3Ctspan fill='%239CA3AF'%3ELeasing%3C/tspan%3E%3C/text%3E%3C/svg%3E";
+
     const navLinks = [
         { to: "/", label: "Acasă" },
         { to: "/despre-noi", label: "Despre noi" },
@@ -74,7 +97,24 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
             <div className={`container mx-auto px-4 transition-all duration-300 ${isScrolled ? 'py-3' : 'py-5'}`}>
                 <div className="flex justify-between items-center">
                     <NavLink to="/" aria-label="Open Road Leasing Homepage">
-                        <Logo />
+                        {/* Aici se afișează logoul corespunzător temei (light/dark).
+                            Fiecare imagine are un ID unic (`data-editable-id`) pentru a putea fi modificată
+                            din panoul de administrare (Editor Vizual). */}
+                        {themeContext?.theme === 'dark' ? (
+                            <Image
+                                src={getContent('site-logo-dark') || getContent('site-logo') || DEFAULT_LOGO_DARK || DEFAULT_LOGO}
+                                alt="Open Road Leasing"
+                                data-editable-id="site-logo-dark"
+                                className="h-8 w-auto"
+                            />
+                        ) : (
+                            <Image
+                                src={getContent('site-logo') || DEFAULT_LOGO}
+                                alt="Open Road Leasing"
+                                data-editable-id="site-logo"
+                                className="h-8 w-auto"
+                            />
+                        )}
                     </NavLink>
                     
                     <nav className="hidden lg:flex items-center space-x-6">

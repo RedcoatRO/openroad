@@ -4,14 +4,6 @@ import React from 'react';
 // Using a general props type for simplicity
 type IconProps = React.SVGProps<SVGSVGElement>;
 
-export const Logo: React.FC<IconProps> = (props) => (
-  <svg width="228" height="32" viewBox="0 0 228 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <text x="0" y="24" fontFamily="Inter, sans-serif" fontSize="22" fontWeight="bold" className="fill-primary">
-      Open Road <tspan className="fill-muted dark:fill-gray-400">Leasing</tspan>
-    </text>
-  </svg>
-);
-
 export const CheckCircleIcon: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
 );
@@ -213,4 +205,14 @@ export const ExternalLinkIcon: React.FC<IconProps> = (props) => (
 
 export const ImageIcon: React.FC<IconProps> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+);
+
+// FIX: Added the missing Logo component.
+export const Logo: React.FC<IconProps> = (props) => (
+    <svg width="180" height="26" viewBox="0 0 180 26" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <text x="0" y="20" style={{ fontFamily: 'Inter, sans-serif', fontSize: '20px', fontWeight: 'bold' }} fill="#0B5FFF">
+            Open Road
+            <tspan fill="#6B7280"> Leasing</tspan>
+        </text>
+    </svg>
 );
