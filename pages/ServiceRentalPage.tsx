@@ -10,20 +10,17 @@ const ServiceRentalPage: React.FC = () => {
     const [contentOverrides, setContentOverrides] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
 
-    // Încarcă conținutul editabil de la Firestore
+    // Stabilește un listener în timp real pentru conținutul editabil
     useEffect(() => {
-        const fetchContent = async () => {
-            try {
-                const content = await adminDataService.getContentOverrides();
-                setContentOverrides(content);
-                console.log('Content Overrides loaded for ServiceRentalPage:', content);
-            } catch (error) {
-                console.error("Eroare la încărcarea conținutului:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchContent();
+        setIsLoading(true);
+        const unsubscribe = adminDataService.listenToContentOverrides((content) => {
+            setContentOverrides(content);
+            console.log('Content Overrides updated for ServiceRentalPage:', content);
+            setIsLoading(false);
+        });
+
+        // Curăță listener-ul la demontarea componentei
+        return () => unsubscribe();
     }, []);
 
     const getContent = (id: string, fallback: string) => contentOverrides[id] || fallback;

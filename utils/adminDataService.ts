@@ -140,6 +140,20 @@ export const adminDataService = {
         const docRef = await db.collection('content').doc('overrides').get();
         return docRef.exists ? (docRef.data() as Record<string, string>) : {};
     },
+    
+    listenToContentOverrides(callback: (data: Record<string, string>) => void): () => void {
+        const docRef = db.collection('content').doc('overrides');
+        const unsubscribe = docRef.onSnapshot(
+            (doc) => {
+                const data = doc.exists ? (doc.data() as Record<string, string>) : {};
+                callback(data);
+            },
+            (error) => {
+                console.error("Error listening to content overrides:", error);
+            }
+        );
+        return unsubscribe; // Returnează funcția de dezabonare pentru cleanup
+    },
 
     async setContentOverride(id: string, content: string): Promise<void> {
         await db.collection('content').doc('overrides').set({ [id]: content }, { merge: true });

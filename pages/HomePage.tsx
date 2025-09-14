@@ -62,33 +62,38 @@ const HomePage: React.FC = () => {
     const [partners, setPartners] = useState<{ id: string, logoUrl: string, name: string }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // useEffect pentru a încărca toate datele necesare asincron la montarea componentei
+    // useEffect pentru a încărca datele
     useEffect(() => {
-        const fetchPageData = async () => {
+        setIsLoading(true);
+        // Funcție pentru a încărca datele care nu necesită actualizare în timp real
+        const fetchStaticData = async () => {
             try {
-                // Folosim Promise.all pentru a încărca datele în paralel
-                const [vehicles, content, testimonials, partnersData] = await Promise.all([
+                const [vehicles, testimonials, partnersData] = await Promise.all([
                     adminDataService.getVehicles(),
-                    adminDataService.getContentOverrides(),
                     adminDataService.getTestimonials(),
                     adminDataService.getPartners()
                 ]);
                 
-                // Setăm stările cu datele primite de la Firestore
                 setVehiclesForHomepage(vehicles.slice(0, 3));
-                setContentOverrides(content);
-                console.log('Content Overrides loaded for HomePage:', content);
                 setTestimonialsData(testimonials);
                 setPartners(partnersData);
             } catch (error) {
-                console.error("Eroare la încărcarea datelor pentru pagina principală:", error);
-                // Aici se poate adăuga o stare de eroare pentru a o afișa utilizatorului
-            } finally {
-                setIsLoading(false);
+                console.error("Eroare la încărcarea datelor statice pentru pagina principală:", error);
             }
         };
 
-        fetchPageData();
+        fetchStaticData();
+
+        // Stabilește un listener în timp real pentru conținutul editabil
+        const unsubscribe = adminDataService.listenToContentOverrides((content) => {
+            setContentOverrides(content);
+            console.log('Content Overrides updated for HomePage:', content);
+            // Odată ce avem conținutul, putem opri starea de încărcare
+            setIsLoading(false);
+        });
+
+        // Curăță listener-ul la demontarea componentei pentru a preveni memory leaks
+        return () => unsubscribe();
     }, []);
 
     // Funcție ajutătoare pentru a obține conținutul, cu fallback
