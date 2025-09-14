@@ -1,9 +1,7 @@
 
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon, ImageIcon } from '../icons'; // Am adăugat iconițe noi
-import { fallbackLogoUri } from '../../utils/siteData';
+import { Logo, UsersIcon, LineChartIcon, HistoryIcon, PaletteIcon, ExternalLinkIcon, ImageIcon } from '../icons'; // Am adăugat iconițe noi
 
 interface SidebarProps {
     isSidebarOpen: boolean;
@@ -33,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
         
             <aside className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-border z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex-shrink-0`}>
                 <div className="p-6">
-                    <img src={fallbackLogoUri} alt="Logo" className="h-8 w-auto" />
+                    <Logo />
                 </div>
                 <nav className="mt-6 px-4">
                     <ul>

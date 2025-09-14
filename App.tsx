@@ -44,7 +44,6 @@ import ReportsPage from './pages/admin/ReportsPage';
 import AuditLogPage from './pages/admin/AuditLogPage';
 import VisualEditorPage from './pages/admin/VisualEditorPage';
 import ImageGalleryPage from './pages/admin/ImageGalleryPage';
-import { ContentProvider } from './contexts/ContentContext';
 
 const MainLayout: React.FC = () => {
     const [isModalOpen, setModalOpen] = useState(false);
@@ -74,7 +73,7 @@ const MainLayout: React.FC = () => {
     const organizationSchema = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "Corporate Name",
+        "name": "Open Road Leasing",
         "url": "https://www.openroadleasing.com",
         "logo": "https://www.openroadleasing.com/logo.png",
         "contactPoint": {
@@ -86,111 +85,80 @@ const MainLayout: React.FC = () => {
     
     // Script to enable visual editing when inside an iframe
     useEffect(() => {
+        // Verifică dacă fereastra curentă este într-un iframe. Scriptul rulează doar în acest caz.
         const isInsideIframe = window.self !== window.top;
         if (!isInsideIframe) return;
 
-        let observer: MutationObserver | null = null;
-
-        const attachClickListener = (el: Element) => {
-            el.addEventListener('click', handleElementClick);
-        };
-
-        const handleElementClick = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const el = e.currentTarget as Element;
-            const id = el.getAttribute('data-editable-id');
-            if (!id) return;
-
-            const isImageTag = el.tagName === 'IMG';
-            const isBgImage = el instanceof HTMLElement && el.style.backgroundImage && el.style.backgroundImage !== 'none';
-            const isImage = isImageTag || isBgImage;
-
-            let content: string | null = '';
-            let elementType: 'text' | 'image';
-
-            if (isImage) {
-                elementType = 'image';
-                if (isImageTag) {
-                    content = (el as HTMLImageElement).src;
-                } else {
-                    const bgImage = (el as HTMLElement).style.backgroundImage;
-                    const match = bgImage.match(/url\((['"])?(.*?)\1\)/);
-                    content = match ? match[2] : '';
-                }
-            } else {
-                elementType = 'text';
-                content = el.textContent;
-            }
-            
-            window.top?.postMessage({
-                type: 'FL_PRO_ELEMENT_CLICKED',
-                payload: { id, type: elementType, content }
-            }, '*');
-        };
-        
-        const activateEditMode = () => {
-            document.body.classList.add('visual-editor-active');
-                
-            const style = document.createElement('style');
-            style.id = 'visual-editor-styles';
-            style.innerHTML = `
-                .visual-editor-active [data-editable-id] {
-                    outline: 2px dashed #0B5FFF !important;
-                    outline-offset: 4px !important;
-                    cursor: pointer !important;
-                    transition: all 0.2s ease-in-out;
-                }
-                .visual-editor-active [data-editable-id]:hover {
-                    outline-style: solid !important;
-                    background-color: rgba(11, 95, 255, 0.1) !important;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Attach listeners to existing elements
-            document.querySelectorAll('[data-editable-id]').forEach(attachClickListener);
-
-            // Observe for new elements being added to the DOM
-            observer = new MutationObserver(mutations => {
-                mutations.forEach(mutation => {
-                    mutation.addedNodes.forEach(node => {
-                        if (node instanceof HTMLElement) {
-                            if (node.hasAttribute('data-editable-id')) {
-                                attachClickListener(node);
-                            }
-                            node.querySelectorAll('[data-editable-id]').forEach(attachClickListener);
-                        }
-                    });
-                });
-            });
-
-            observer.observe(document.body, { childList: true, subtree: true });
-        };
-        
-        const deactivateEditMode = () => {
-             document.body.classList.remove('visual-editor-active');
-             const style = document.getElementById('visual-editor-styles');
-             if (style) style.remove();
-             document.querySelectorAll('[data-editable-id]').forEach(el => {
-                 el.removeEventListener('click', handleElementClick);
-             });
-             if (observer) {
-                 observer.disconnect();
-                 observer = null;
-             }
-        };
-
+        // Handler pentru mesajele primite de la fereastra părinte (panoul de admin)
         const handleMessage = (event: MessageEvent) => {
             const { type, payload } = event.data;
 
+            // Când primește mesajul de activare a modului de editare
             if (type === 'FL_PRO_EDIT_MODE') {
-                activateEditMode();
+                document.body.classList.add('visual-editor-active');
+                
+                // Injectează stiluri CSS pentru a evidenția elementele editabile
+                const style = document.createElement('style');
+                style.id = 'visual-editor-styles';
+                style.innerHTML = `
+                    .visual-editor-active [data-editable-id] {
+                        outline: 2px dashed #0B5FFF !important;
+                        outline-offset: 4px !important;
+                        cursor: pointer !important;
+                        transition: all 0.2s ease-in-out;
+                    }
+                    .visual-editor-active [data-editable-id]:hover {
+                        outline-style: solid !important;
+                        background-color: rgba(11, 95, 255, 0.1) !important;
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Adaugă event listenere de click pe toate elementele editabile
+                document.querySelectorAll('[data-editable-id]').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const id = el.getAttribute('data-editable-id');
+                        if (!id) return;
+
+                        // Logică robustă pentru a determina tipul și conținutul elementului
+                        const isImageTag = el.tagName === 'IMG';
+                        const isBgImage = el instanceof HTMLElement && el.style.backgroundImage && el.style.backgroundImage !== 'none';
+                        const isImage = isImageTag || isBgImage;
+
+                        let content: string | null = '';
+                        let elementType: 'text' | 'image';
+
+                        if (isImage) {
+                            elementType = 'image';
+                            if (isImageTag) {
+                                content = (el as HTMLImageElement).src;
+                            } else { // Este o imagine de fundal
+                                const bgImage = (el as HTMLElement).style.backgroundImage;
+                                // Extrage URL-ul din proprietatea CSS 'url(...)', indiferent de ghilimele
+                                const match = bgImage.match(/url\((['"])?(.*?)\1\)/);
+                                content = match ? match[2] : '';
+                            }
+                        } else {
+                            elementType = 'text';
+                            content = el.textContent;
+                        }
+                        
+                        // Trimite un mesaj către panoul de admin cu detaliile elementului pe care s-a dat click
+                        window.top?.postMessage({
+                            type: 'FL_PRO_ELEMENT_CLICKED',
+                            payload: { id, type: elementType, content }
+                        }, '*');
+                    });
+                });
+            // Când primește un mesaj de actualizare a conținutului (după o salvare în admin)
             } else if (type === 'FL_PRO_UPDATE_CONTENT') {
                 const { id, content } = payload;
                 const element = document.querySelector(`[data-editable-id="${id}"]`);
                 if (element) {
+                    // Aplică modificarea în timp real, fără a reîncărca pagina
                     if (element.tagName === 'IMG') {
                         (element as HTMLImageElement).src = content;
                     } else if (element instanceof HTMLElement && element.style.backgroundImage) {
@@ -203,44 +171,48 @@ const MainLayout: React.FC = () => {
         };
 
         window.addEventListener('message', handleMessage);
+
+        // Notifică panoul de admin că iframe-ul este gata să primească comenzi
         window.top?.postMessage({ type: 'FL_PRO_IFRAME_READY' }, '*');
 
+        // Funcție de curățare la demontarea componentei
         return () => {
             window.removeEventListener('message', handleMessage);
-            deactivateEditMode();
+            document.body.classList.remove('visual-editor-active');
+            const style = document.getElementById('visual-editor-styles');
+            if (style) style.remove();
+            // Aici ar trebui eliminat și event listener-ul de pe elemente, dar la părăsirea paginii nu mai e necesar
         };
     }, []);
 
 
     return (
-        <ContentProvider>
-            <div className="font-sans text-text-main bg-bg-main dark:bg-gray-900 transition-colors duration-300">
-                <StructuredData schema={organizationSchema} />
-                <Header onQuoteClick={() => setModalOpen(true)} onFavoritesClick={() => setFavoritesModalOpen(true)} />
-                <main>
-                    <Outlet context={outletContext} />
-                </main>
-                <Footer />
-                <QuoteModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
-                <FavoritesModal 
-                    isOpen={isFavoritesModalOpen} 
-                    onClose={() => setFavoritesModalOpen(false)} 
-                    onQuoteClick={(model) => setModalOpen(true)}
-                    onViewDetails={handleViewDetails}
-                    onStockAlertClick={handleStockAlertClick}
-                />
-                <VehicleDetailModal 
-                    isOpen={isDetailModalOpen} 
-                    onClose={() => setDetailModalOpen(false)} 
-                    vehicle={selectedVehicle}
-                />
-                <StockAlertModal
-                    isOpen={isStockAlertModalOpen}
-                    onClose={() => setStockAlertModalOpen(false)}
-                    vehicle={stockAlertVehicle}
-                />
-            </div>
-        </ContentProvider>
+        <div className="font-sans text-text-main bg-bg-main dark:bg-gray-900 transition-colors duration-300">
+            <StructuredData schema={organizationSchema} />
+            <Header onQuoteClick={() => setModalOpen(true)} onFavoritesClick={() => setFavoritesModalOpen(true)} />
+            <main>
+                <Outlet context={outletContext} />
+            </main>
+            <Footer />
+            <QuoteModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+            <FavoritesModal 
+                isOpen={isFavoritesModalOpen} 
+                onClose={() => setFavoritesModalOpen(false)} 
+                onQuoteClick={(model) => setModalOpen(true)}
+                onViewDetails={handleViewDetails}
+                onStockAlertClick={handleStockAlertClick}
+            />
+            <VehicleDetailModal 
+                isOpen={isDetailModalOpen} 
+                onClose={() => setDetailModalOpen(false)} 
+                vehicle={selectedVehicle}
+            />
+            <StockAlertModal
+                isOpen={isStockAlertModalOpen}
+                onClose={() => setStockAlertModalOpen(false)}
+                vehicle={stockAlertVehicle}
+            />
+        </div>
     );
 };
 

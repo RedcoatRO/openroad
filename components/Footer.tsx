@@ -1,26 +1,17 @@
 
-import React, { useContext } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MailIcon, PhoneIcon, MapPinIcon } from './icons';
-import { ContentContext } from '../contexts/ContentContext';
-import { fallbackLogoUri } from '../utils/siteData';
+import { Logo, MailIcon, PhoneIcon, MapPinIcon } from './icons';
 
 const Footer: React.FC = () => {
-    const contentContext = useContext(ContentContext);
-
     return (
         <footer className="bg-bg-alt dark:bg-gray-800 text-muted dark:text-gray-400 pt-16 pb-8">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                     {/* Col 1: Brand & Brief */}
                     <div className="space-y-4">
-                        <img 
-                            data-editable-id="site-logo" 
-                            src={contentContext?.getContent('site-logo', fallbackLogoUri)} 
-                            alt="Logo" 
-                            className="h-8 w-auto" 
-                        />
-                        <p data-editable-id="footer-brief" className="text-sm">{contentContext?.getContent('footer-brief', 'Partenerul tău pentru mobilitate predictibilă și eficientă.')}</p>
+                        <Logo />
+                        <p className="text-sm">Partenerul tău pentru mobilitate predictibilă și eficientă.</p>
                     </div>
 
                     {/* Col 2: Linkuri */}
@@ -69,7 +60,7 @@ const Footer: React.FC = () => {
                 </div>
 
                 <div className="border-t border-border dark:border-gray-700 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-center text-xs">
-                    <p>&copy; {new Date().getFullYear()} <span className="inline-block w-40 h-5 bg-red-500 align-middle" />. Toate drepturile rezervate.</p>
+                    <p>&copy; {new Date().getFullYear()} Open Road Leasing. Toate drepturile rezervate.</p>
                     <div className="flex items-center space-x-4 mt-4 sm:mt-0">
                         <a href="#" className="hover:text-primary transition-colors">Termeni și condiții</a>
                         <span className="text-gray-400 dark:text-gray-600">|</span>

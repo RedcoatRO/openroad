@@ -1,9 +1,24 @@
 
-
 import React from 'react';
+import Image from './Image';
 
 // Using a general props type for simplicity
 type IconProps = React.SVGProps<SVGSVGElement>;
+type ImgProps = React.ImgHTMLAttributes<HTMLImageElement>;
+
+// FIX: Destructure `src` from props to avoid passing it down to the `Image` component.
+// The hardcoded `src` on `Image` would conflict with a potential `src` of type `string | Blob` from props.
+export const Logo: React.FC<ImgProps> = ({ src, ...props }) => (
+  <Image
+    data-editable-id="site-logo"
+    src="https://i.ibb.co/hZxt30j/logo.png"
+    alt="Open Road Logo"
+    className="h-8 w-auto"
+    width="134"
+    height="32"
+    {...props}
+  />
+);
 
 export const CheckCircleIcon: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
