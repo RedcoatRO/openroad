@@ -65,7 +65,7 @@ const AboutPage: React.FC = () => {
         return () => unsubscribe();
     }, []);
 
-    const getContent = (id: string, fallback: string) => contentOverrides[id] || fallback;
+    const getContent = (id: string) => contentOverrides[id] || '';
     
     if (isLoading) {
         return <div className="h-screen flex items-center justify-center">Se încarcă...</div>;
@@ -74,11 +74,11 @@ const AboutPage: React.FC = () => {
     return (
         <>
             {/* Hero Section */}
-            <section data-editable-id="about-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('about-hero-bg', 'https://picsum.photos/seed/about/1920/1080')}')` }}>
+            <section data-editable-id="about-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('about-hero-bg')}')` }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 data-editable-id="about-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('about-hero-title', 'Despre noi')}</h1>
-                    <p data-editable-id="about-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('about-hero-subtitle', 'Partenerul tău de încredere pentru mobilitate corporativă pe termen lung.')}</p>
+                    <h1 data-editable-id="about-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('about-hero-title')}</h1>
+                    <p data-editable-id="about-hero-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('about-hero-subtitle')}</p>
                     <div className="mt-8">
                         <Breadcrumbs />
                     </div>
@@ -90,8 +90,8 @@ const AboutPage: React.FC = () => {
                 <div className="container mx-auto px-4">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div className="text-center lg:text-left">
-                            <h2 data-editable-id="about-mission-title" id="mission-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-mission-title', 'Misiunea noastră')}</h2>
-                            <p data-editable-id="about-mission-text" className="mt-4 text-muted dark:text-gray-400">{getContent('about-mission-text', 'Oferim companiilor soluții de mobilitate flexibile și previzibile, prin servicii de închiriere auto pe termen lung, cu accent pe transparență, eficiență și suport constant.')}</p>
+                            <h2 data-editable-id="about-mission-title" id="mission-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-mission-title')}</h2>
+                            <p data-editable-id="about-mission-text" className="mt-4 text-muted dark:text-gray-400">{getContent('about-mission-text')}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-8" aria-label="Valorile companiei">
                            {valuesData.map(value => (
@@ -112,8 +112,8 @@ const AboutPage: React.FC = () => {
             <section className="py-20 bg-bg-alt dark:bg-gray-800" aria-labelledby="story-title">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 data-editable-id="about-story-title" id="story-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-story-title', 'Povestea noastră')}</h2>
-                        <p data-editable-id="about-story-text" className="mt-4 text-muted dark:text-gray-400">{getContent('about-story-text', 'O călătorie marcată de creștere constantă și parteneriate de succes.')}</p>
+                        <h2 data-editable-id="about-story-title" id="story-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-story-title')}</h2>
+                        <p data-editable-id="about-story-text" className="mt-4 text-muted dark:text-gray-400">{getContent('about-story-text')}</p>
                     </div>
                     <div className="relative">
                         {/* The line */}
@@ -136,7 +136,7 @@ const AboutPage: React.FC = () => {
             <section className="py-20" aria-labelledby="team-title">
                 <div className="container mx-auto px-4">
                      <div className="text-center max-w-2xl mx-auto mb-12">
-                        <h2 data-editable-id="about-team-title" id="team-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-team-title', 'Echipa noastră de leadership')}</h2>
+                        <h2 data-editable-id="about-team-title" id="team-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('about-team-title')}</h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {teamData.map(member => (
@@ -179,11 +179,11 @@ const AboutPage: React.FC = () => {
             </section>
 
             {/* Closing CTA */}
-            <section data-editable-id="about-cta-bg" className="relative bg-cover bg-center text-white" style={{ backgroundImage: `url('${getContent('about-cta-bg', 'https://picsum.photos/seed/cityroad/1920/1080')}')` }}>
+            <section data-editable-id="about-cta-bg" className="relative bg-cover bg-center text-white" style={{ backgroundImage: `url('${getContent('about-cta-bg')}')` }}>
                 <div className="absolute inset-0 bg-blue-900/80"></div>
                  <div className="relative container mx-auto px-4 py-20 text-center">
-                    <h2 data-editable-id="about-cta-title" className="text-4xl font-bold">{getContent('about-cta-title', 'Hai să construim parteneriatul potrivit pentru compania ta.')}</h2>
-                    <p data-editable-id="about-cta-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('about-cta-subtitle', 'Contactează-ne pentru o ofertă personalizată de flotă.')}</p>
+                    <h2 data-editable-id="about-cta-title" className="text-4xl font-bold">{getContent('about-cta-title')}</h2>
+                    <p data-editable-id="about-cta-subtitle" className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">{getContent('about-cta-subtitle')}</p>
                     <button onClick={onQuoteClick} className="mt-8 bg-primary text-white font-bold px-8 py-3 rounded-btn hover:bg-primary-600 border-2 border-primary hover:border-primary-600 transition-colors">Solicită ofertă</button>
                 </div>
             </section>

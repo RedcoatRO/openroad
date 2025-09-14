@@ -23,7 +23,7 @@ const ServiceRentalPage: React.FC = () => {
         return () => unsubscribe();
     }, []);
 
-    const getContent = (id: string, fallback: string) => contentOverrides[id] || fallback;
+    const getContent = (id: string) => contentOverrides[id] || '';
 
     const serviceSchema = {
         "@context": "https://schema.org",
@@ -48,11 +48,11 @@ const ServiceRentalPage: React.FC = () => {
         <>
             <StructuredData schema={serviceSchema} />
             {/* Hero Section */}
-            <section data-editable-id="rental-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('rental-hero-bg', 'https://picsum.photos/seed/rental/1920/1080')}')` }}>
+            <section data-editable-id="rental-hero-bg" className="relative bg-cover bg-center text-white py-24" style={{ backgroundImage: `url('${getContent('rental-hero-bg')}')` }}>
                 <div className="absolute inset-0 bg-gray-900/70"></div>
                 <div className="relative container mx-auto px-4 z-10 text-center">
-                    <h1 data-editable-id="rental-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('rental-hero-title', 'Închiriere pe Termen Lung')}</h1>
-                    <p data-editable-id="rental-hero-subtitle" className="mt-4 text-lg text-gray-200 max-w-2xl mx-auto">{getContent('rental-hero-subtitle', 'Flexibilitate și control total asupra flotei tale, fără angajamente pe viață.')}</p>
+                    <h1 data-editable-id="rental-hero-title" className="text-4xl md:text-5xl font-bold">{getContent('rental-hero-title')}</h1>
+                    <p data-editable-id="rental-hero-subtitle" className="mt-4 text-lg text-gray-200 max-w-2xl mx-auto">{getContent('rental-hero-subtitle')}</p>
                     <div className="mt-8"> <Breadcrumbs /> </div>
                 </div>
             </section>
@@ -61,7 +61,7 @@ const ServiceRentalPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-12">
-                        <h2 data-editable-id="rental-benefits-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('rental-benefits-title', 'De ce să alegi închirierea pe termen lung?')}</h2>
+                        <h2 data-editable-id="rental-benefits-title" className="text-3xl font-bold text-text-main dark:text-white">{getContent('rental-benefits-title')}</h2>
                     </div>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="text-center"><ClockIcon className="w-10 h-10 text-primary mx-auto mb-3"/><h3 className="font-bold text-lg">Perioade Flexibile</h3><p className="text-sm text-muted">Contracte de la 12 la 48 de luni, adaptate proiectelor tale.</p></div>
@@ -74,8 +74,8 @@ const ServiceRentalPage: React.FC = () => {
             {/* Closing CTA */}
             <section className="bg-primary text-white">
                 <div className="container mx-auto px-4 py-16 text-center">
-                    <h2 data-editable-id="rental-cta-title" className="text-3xl font-bold">{getContent('rental-cta-title', 'Nevoie de flexibilitate pentru flota ta?')}</h2>
-                    <p data-editable-id="rental-cta-subtitle" className="mt-4 max-w-2xl mx-auto text-blue-100">{getContent('rental-cta-subtitle', 'Alege mașinile de care ai nevoie, pentru perioada de care ai nevoie. Simplu și eficient.')}</p>
+                    <h2 data-editable-id="rental-cta-title" className="text-3xl font-bold">{getContent('rental-cta-title')}</h2>
+                    <p data-editable-id="rental-cta-subtitle" className="mt-4 max-w-2xl mx-auto text-blue-100">{getContent('rental-cta-subtitle')}</p>
                     <button onClick={onQuoteClick} className="mt-8 inline-block bg-white text-primary font-bold px-8 py-3 rounded-btn hover:bg-blue-50 transition-colors">
                         Configurează-ți flota
                     </button>
