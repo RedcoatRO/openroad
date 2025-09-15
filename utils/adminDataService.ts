@@ -114,6 +114,28 @@ export const adminDataService = {
         await db.collection('requests').doc(requestId).update({ status });
         await logAction('update_request_status', `Statusul solicitării ${requestId} a fost schimbat în "${status}"`);
     },
+
+    /**
+     * Stabilește un listener în timp real pe colecția de solicitări pentru a număra cele noi.
+     * @param callback Funcția care va fi apelată cu numărul de solicitări noi de fiecare dată când acesta se schimbă.
+     * @returns O funcție `unsubscribe` care trebuie apelată la demontarea componentei pentru a opri listener-ul.
+     */
+    listenToNewRequests(callback: (count: number) => void): () => void {
+        const query = db.collection('requests').where('status', '==', 'Nouă');
+
+        const unsubscribe = query.onSnapshot(
+            (snapshot) => {
+                const count = snapshot.size; // `size` oferă direct numărul de documente din rezultat
+                callback(count);
+            },
+            (error) => {
+                console.error("Eroare la ascultarea solicitărilor noi:", error);
+                // Într-o aplicație reală, s-ar putea gestiona eroarea mai vizibil pentru utilizator.
+            }
+        );
+
+        return unsubscribe; // Returnează funcția de dezabonare pentru a permite curățarea listener-ului.
+    },
     
     // --- Trimiteri Formulare Publice (Contact, Newsletter, Recomandare) ---
     /**

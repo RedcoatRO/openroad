@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MailIcon, PhoneIcon, MapPinIcon, ChevronDownIcon } from '../components/icons';
+import { MailIcon, PhoneIcon, MapPinIcon } from '../components/icons';
 import { formatCUI, validateCUI, formatPhone, validatePhone } from '../utils/formUtils';
 import Breadcrumbs from '../components/Breadcrumbs';
 import InteractiveMap from '../components/InteractiveMap';
 import { adminDataService } from '../utils/adminDataService';
 import type { FAQItem } from '../types';
+import FAQAccordionItem from '../components/FAQAccordionItem'; // Am importat noua componentă
 
 type FormErrors = {
     numeFirma?: string;
@@ -14,26 +15,8 @@ type FormErrors = {
     mesaj?: string;
 };
 
-// Componenta pentru un singur item FAQ, cu stare pentru a fi deschis/închis
-const FAQAccordionItem: React.FC<{ item: FAQItem }> = ({ item }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <div className="border-b border-border dark:border-gray-700">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-between items-center text-left py-4"
-            >
-                <span className="font-semibold text-text-main dark:text-white">{item.question}</span>
-                <ChevronDownIcon className={`w-5 h-5 text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isOpen && (
-                <div className="pb-4 text-muted dark:text-gray-400">
-                    <p>{item.answer}</p>
-                </div>
-            )}
-        </div>
-    );
-};
+// Componenta FAQAccordionItem a fost mutată într-un fișier separat (components/FAQAccordionItem.tsx)
+// pentru a respecta structura proiectului și pentru a fi reutilizabilă.
 
 const ContactPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -178,10 +161,12 @@ const ContactPage: React.FC = () => {
             <section className="py-20">
                 <div className="container mx-auto px-4 max-w-3xl">
                     <h2 className="text-3xl font-bold text-center text-text-main dark:text-white mb-8">Întrebări frecvente</h2>
+                    {/* Logica de afișare pentru FAQ */}
                     {isLoadingFAQs ? (
                         <p className="text-center text-muted">Se încarcă întrebările...</p>
                     ) : faqItems.length > 0 ? (
                         <div className="space-y-2">
+                            {/* Folosim componenta importată pentru a randa fiecare item */}
                             {faqItems.map(item => <FAQAccordionItem key={item.id} item={item} />)}
                         </div>
                     ) : (
