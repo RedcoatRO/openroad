@@ -1,6 +1,6 @@
 // sw.js - Service Worker for Open Road Leasing PWA
 
-const CACHE_NAME = 'openroad-leasing-cache-v7'; // Versiune cache incrementată pentru a forța actualizarea
+const CACHE_NAME = 'openroad-leasing-cache-v8'; // Versiune cache incrementată pentru a forța actualizarea
 
 // Lista resurselor esențiale (App Shell) care vor fi stocate în cache la instalare.
 const APP_SHELL_FILES = [
@@ -13,7 +13,6 @@ const APP_SHELL_FILES = [
   '/utils/adminDataService.ts',
   '/utils/firebase.ts',
   '/utils/formUtils.ts',
-  '/utils/imageCompressor.ts',
   '/contexts/AuthContext.tsx',
   '/contexts/FavoritesContext.tsx',
   '/contexts/ThemeContext.tsx',
@@ -22,6 +21,7 @@ const APP_SHELL_FILES = [
   '/components/Breadcrumbs.tsx',
   '/components/ComparisonModal.tsx',
   '/components/DocumentItem.tsx',
+  '/components/FAQAccordionItem.tsx',
   '/components/FavoritesModal.tsx',
   '/components/FleetBuilder.tsx',
   '/components/Footer.tsx',
@@ -29,6 +29,7 @@ const APP_SHELL_FILES = [
   '/components/icons.tsx',
   '/components/Image.tsx',
   '/components/InteractiveMap.tsx',
+  '/components/Logo.tsx',
   '/components/QuoteModal.tsx',
   '/components/SearchBar.tsx',
   '/components/StockAlertModal.tsx',
@@ -54,10 +55,12 @@ const APP_SHELL_FILES = [
   '/pages/ContactPage.tsx',
   '/pages/DocumentsPage.tsx',
   '/pages/HomePage.tsx',
+  '/pages/PrivacyPolicyPage.tsx',
   '/pages/ReferralPage.tsx',
   '/pages/ServiceLeasingPage.tsx',
   '/pages/ServiceRentalPage.tsx',
   '/pages/ServicesPage.tsx',
+  '/pages/TermsAndConditionsPage.tsx',
   '/pages/VehiclesPage.tsx',
   // Admin Pages
   '/pages/admin/AuditLogPage.tsx',
@@ -67,11 +70,9 @@ const APP_SHELL_FILES = [
   '/pages/admin/LoginPage.tsx',
   '/pages/admin/ReportsPage.tsx',
   '/pages/admin/RequestManagementPage.tsx',
-  '/pages/admin/TwoFactorAuthPage.tsx',
   '/pages/admin/UserManagementPage.tsx',
   '/pages/admin/VehicleManagementPage.tsx',
   '/pages/admin/VisualEditorPage.tsx',
-  // Assets - Referințele la logo-uri au fost eliminate, deoarece sunt acum încorporate
 ];
 
 const CDN_FILES_TO_CACHE = [
