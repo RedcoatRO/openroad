@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MailIcon, PhoneIcon, MapPinIcon, ChevronDownIcon } from '../components/icons';
 import { formatCUI, validateCUI, formatPhone, validatePhone } from '../utils/formUtils';
@@ -43,6 +42,7 @@ const ContactPage: React.FC = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
     const [isLoadingFAQs, setIsLoadingFAQs] = useState(true);
 
@@ -61,7 +61,6 @@ const ContactPage: React.FC = () => {
         fetchFAQs();
     }, []);
 
-    const validateForm = () => { /* ... (cod existent, neschimbat) ... */ return true; };
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
         if (type === 'checkbox') {
@@ -74,18 +73,27 @@ const ContactPage: React.FC = () => {
              setFormData(prev => ({ ...prev, [name]: formattedValue }));
         }
     };
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => { /* ... (cod existent, neschimbat) ... */ };
-    const handleSubmit = (e: React.FormEvent) => {
+    
+    // Funcția handleSubmit a fost actualizată pentru a fi asincronă și a salva datele
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Aici s-ar putea adăuga și salvarea mesajului de contact în Firestore
-        setIsSubmitted(true);
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            // Salvează datele în colecția 'submissions' cu tipul 'contact'
+            await adminDataService.addSubmission(formData, 'contact');
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Failed to submit contact form:", error);
+            alert("A apărut o eroare la trimiterea mesajului. Vă rugăm încercați din nou.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const inputClass = "w-full p-3 border rounded-md bg-white dark:bg-gray-700 dark:text-white focus:ring-primary focus:border-primary transition-colors";
-    const errorInputClass = "border-red-500 dark:border-red-500";
-    const normalInputClass = "border-border dark:border-gray-600";
     const labelClass = "block text-sm font-medium text-muted dark:text-gray-400 mb-1";
-    const errorTextClass = "text-xs text-red-500 mt-1";
 
     return (
         <>
@@ -112,9 +120,19 @@ const ContactPage: React.FC = () => {
                                 <>
                                     <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">Trimite-ne o solicitare</h2>
                                     <form onSubmit={handleSubmit} className="space-y-4">
-                                        {/* ... (câmpuri formular existente, neschimbate) ... */}
+                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div><label className={labelClass}>Nume Firmă</label><input type="text" name="numeFirma" required className={inputClass} onChange={handleInputChange} /></div>
+                                            <div><label className={labelClass}>CUI</label><input type="text" name="cui" value={formData.cui} required className={inputClass} onChange={handleInputChange}/></div>
+                                            <div><label className={labelClass}>Persoană Contact</label><input type="text" name="persoanaContact" required className={inputClass} onChange={handleInputChange} /></div>
+                                            <div><label className={labelClass}>Telefon</label><input type="tel" name="telefon" value={formData.telefon} required className={inputClass} onChange={handleInputChange} /></div>
+                                            <div className="sm:col-span-2"><label className={labelClass}>Email</label><input type="email" name="email" required className={inputClass} onChange={handleInputChange} /></div>
+                                            <div className="sm:col-span-2"><label className={labelClass}>Tip Solicitare</label><select name="tipSolicitare" className={inputClass} onChange={handleInputChange}><option>Ofertă flotă</option><option>Întrebare generală</option><option>Parteneriat</option></select></div>
+                                            <div className="sm:col-span-2"><label className={labelClass}>Mesajul tău</label><textarea name="mesaj" rows={5} required className={inputClass} onChange={handleInputChange}></textarea></div>
+                                        </div>
                                          <div>
-                                            <button type="submit" className="w-full bg-primary text-white font-semibold py-3 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400">Trimite solicitarea</button>
+                                            <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white font-semibold py-3 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400">
+                                                {isSubmitting ? 'Se trimite...' : 'Trimite solicitarea'}
+                                            </button>
                                         </div>
                                     </form>
                                 </>
@@ -122,7 +140,29 @@ const ContactPage: React.FC = () => {
                         </div>
                         {/* Right Side: Contact Info */}
                         <div className="lg:col-span-2 space-y-8">
-                           {/* ... (info contact existente, neschimbate) ... */}
+                           <div className="flex items-start">
+                               <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full mr-4"><MailIcon className="w-6 h-6 text-primary"/></div>
+                               <div>
+                                   <h3 className="font-bold text-lg text-text-main dark:text-white">Email</h3>
+                                   <p className="text-muted dark:text-gray-400">Pentru întrebări generale sau oferte.</p>
+                                   <a href="mailto:office@openroadleasing.com" className="text-primary font-semibold hover:underline">office@openroadleasing.com</a>
+                               </div>
+                           </div>
+                           <div className="flex items-start">
+                                <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full mr-4"><PhoneIcon className="w-6 h-6 text-primary"/></div>
+                               <div>
+                                   <h3 className="font-bold text-lg text-text-main dark:text-white">Telefon</h3>
+                                   <p className="text-muted dark:text-gray-400">Contactează-ne direct pentru o discuție rapidă.</p>
+                                   <a href="tel:+40744000000" className="text-primary font-semibold hover:underline">+40 744 000 000</a>
+                               </div>
+                           </div>
+                           <div className="flex items-start">
+                                <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full mr-4"><MapPinIcon className="w-6 h-6 text-primary"/></div>
+                               <div>
+                                   <h3 className="font-bold text-lg text-text-main dark:text-white">Sediu</h3>
+                                   <p className="text-muted dark:text-gray-400">Bd. Exemplu 123, Etaj 4, București, România</p>
+                               </div>
+                           </div>
                         </div>
                     </div>
                 </div>

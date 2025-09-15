@@ -1,4 +1,3 @@
-
 import React, { useContext, useState, useEffect } from 'react';
 import { XIcon, HeartIcon } from './icons';
 import { FavoritesContext } from '../contexts/FavoritesContext';
@@ -26,9 +25,11 @@ const FavoritesModal: React.FC<FavoritesModalProps> = ({ isOpen, onClose, onQuot
             const fetchFavoriteVehicles = async () => {
                 try {
                     // Preia toate vehiculele din baza de date
-                    const allVehicles = await adminDataService.getVehicles();
+                    // FIX: The getVehicles function requires a limit and returns a paginated response.
+                    const allVehiclesResponse = await adminDataService.getVehicles(999);
                     // Filtrează pentru a păstra doar cele marcate ca favorite
-                    const favs = allVehicles.filter(v => favoritesContext.favoriteIds.includes(v.id));
+                    // FIX: Access the 'vehicles' property of the paginated response.
+                    const favs = allVehiclesResponse.vehicles.filter(v => favoritesContext.favoriteIds.includes(v.id));
                     setFavoriteVehicles(favs);
                 } catch (error) {
                     console.error("Eroare la încărcarea vehiculelor favorite:", error);

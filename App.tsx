@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Header from './components/Header';
@@ -33,6 +31,8 @@ import LoginPage from './pages/admin/LoginPage';
 import ServiceLeasingPage from './pages/ServiceLeasingPage';
 import ServiceRentalPage from './pages/ServiceRentalPage';
 import ReferralPage from './pages/ReferralPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 // Importăm paginile de administrare existente și noi
 import VehicleManagementPage from './pages/admin/VehicleManagementPage';
@@ -250,6 +250,8 @@ const App: React.FC = () => {
                 <Route path="programare" element={<BookingPage />} />
                 <Route path="documente-utile" element={<DocumentsPage />} />
                 <Route path="program-recomandare" element={<ReferralPage />} />
+                <Route path="termeni-si-conditii" element={<TermsAndConditionsPage />} />
+                <Route path="politica-de-confidentialitate" element={<PrivacyPolicyPage />} />
               </Route>
               
               {/* Rutele de administrare sunt acum protejate */}

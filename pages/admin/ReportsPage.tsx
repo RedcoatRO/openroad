@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
@@ -29,8 +28,10 @@ const ReportsPage: React.FC = () => {
     useEffect(() => {
         const fetchDataForCharts = async () => {
             try {
-                const vehicles = await adminDataService.getVehicles();
-                const popularData = vehicles
+                // FIX: The getVehicles function requires a limit and returns a paginated response.
+                const vehicles = await adminDataService.getVehicles(999);
+                // FIX: Access the 'vehicles' property of the paginated response.
+                const popularData = vehicles.vehicles
                     .sort((a, b) => b.popularity - a.popularity)
                     .slice(0, 5)
                     .map(v => ({ name: v.model, Popularitate: v.popularity }));

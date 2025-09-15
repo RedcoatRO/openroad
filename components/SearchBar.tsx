@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SearchIcon, XIcon, CarIcon } from './icons';
@@ -25,8 +24,10 @@ const SearchBar: React.FC = () => {
 
     // Încarcă datele vehiculelor o singură dată la montarea componentei
     useEffect(() => {
-        adminDataService.getVehicles().then(vehicles => {
-            setAllVehicles(vehicles);
+        // FIX: The getVehicles function requires a limit and returns a paginated response.
+        adminDataService.getVehicles(999).then(vehiclesResponse => {
+            // FIX: Access the 'vehicles' property from the response and update the state.
+            setAllVehicles(vehiclesResponse.vehicles);
         }).catch(err => console.error("Failed to load vehicles for search:", err));
     }, []);
 

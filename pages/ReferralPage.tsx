@@ -1,24 +1,36 @@
-
 import React, { useState } from 'react';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { GiftIcon, Share2Icon, CheckCircleIcon } from '../components/icons';
+import { adminDataService } from '../utils/adminDataService';
 
 const ReferralPage: React.FC = () => {
     const [formData, setFormData] = useState({
         referrerName: '', referrerCompany: '', referrerEmail: '',
         referredName: '', referredCompany: '', referredEmail: '',
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Funcția handleSubmit a fost actualizată pentru a fi asincronă și a salva datele
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulare trimitere
-        console.log("Recomandare trimisă:", formData);
-        setIsSubmitted(true);
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            // Salvează datele în colecția 'submissions' cu tipul 'referral'
+            await adminDataService.addSubmission(formData, 'referral');
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Failed to submit referral:", error);
+            alert("A apărut o eroare la trimiterea recomandării. Vă rugăm încercați din nou.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const inputClass = "w-full p-2 border border-border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 dark:text-white text-sm";
@@ -93,7 +105,9 @@ const ReferralPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="pt-4">
-                                        <button type="submit" className="w-full bg-primary text-white font-bold py-3 rounded-btn hover:bg-primary-600 transition-colors">Trimite recomandarea</button>
+                                        <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white font-bold py-3 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400">
+                                            {isSubmitting ? 'Se trimite...' : 'Trimite recomandarea'}
+                                        </button>
                                     </div>
                                 </form>
                             </>

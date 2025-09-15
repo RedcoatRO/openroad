@@ -7,6 +7,7 @@ import ComparisonModal from '../components/ComparisonModal';
 import { adminDataService } from '../utils/adminDataService';
 import VehicleCard from '../components/VehicleCard';
 import Breadcrumbs from '../components/Breadcrumbs'; 
+import { firebase } from '../utils/firebase'; // Import pentru tipul DocumentSnapshot
 
 interface OutletContextType {
     onQuoteClick: (model?: string) => void;
@@ -21,6 +22,7 @@ const benefitsData = [
     { text: "Vehicul de înlocuire gratuit" },
 ]
 
+// Componenta pentru bara de jos, care afișează vehiculele selectate pentru comparație.
 const CompareBar: React.FC<{
     items: Vehicle[];
     onCompare: () => void;
@@ -52,14 +54,23 @@ const CompareBar: React.FC<{
     );
 };
 
+// Numărul de vehicule de încărcat pe pagină.
+const PAGE_SIZE = 9;
+
 const VehiclesPage: React.FC = () => {
     const { onQuoteClick, onViewDetails, onStockAlertClick } = useOutletContext<OutletContextType>();
+    // Starea `allVehicles` acumulează vehiculele încărcate pe parcursul paginării.
     const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [comparisonList, setComparisonList] = useState<Vehicle[]>([]);
     const [isCompareModalOpen, setCompareModalOpen] = useState(false);
-    
-    // Stări noi pentru filtrele adăugate
+
+    // Stări noi pentru gestionarea paginării de tip "încarcă mai multe"
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // Indică dacă se încarcă un nou set de vehicule.
+    const [lastVisible, setLastVisible] = useState<firebase.firestore.DocumentSnapshot | null>(null); // Cursorul pentru Firestore.
+    const [hasMore, setHasMore] = useState(true); // Indică dacă mai există vehicule de încărcat.
+
+    // Stări pentru filtrele adăugate
     const [searchQuery, setSearchQuery] = useState('');
     const [brandFilter, setBrandFilter] = useState('Toate');
     const [typeFilter, setTypeFilter] = useState('Toate');
@@ -69,20 +80,46 @@ const VehiclesPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('popularity-desc');
     const [showFeatures, setShowFeatures] = useState(false);
 
-    // Încarcă toate vehiculele asincron de la Firestore la montarea componentei
+    // Funcție pentru a încărca primul set (prima pagină) de vehicule.
+    const fetchFirstPage = async () => {
+        setIsLoading(true);
+        try {
+            const { vehicles: initialVehicles, lastVisible: newLastVisible } = await adminDataService.getVehicles(PAGE_SIZE);
+            setAllVehicles(initialVehicles);
+            setLastVisible(newLastVisible);
+            // Dacă numărul de vehicule primite este mai mic decât limita paginii, înseamnă că nu mai sunt altele.
+            setHasMore(initialVehicles.length === PAGE_SIZE);
+        } catch (error) {
+            console.error("Eroare la încărcarea primului set de vehicule:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Încarcă prima pagină la montarea componentei.
     useEffect(() => {
-        const fetchVehicles = async () => {
-            try {
-                const vehiclesFromDb = await adminDataService.getVehicles();
-                setAllVehicles(vehiclesFromDb);
-            } catch (error) {
-                console.error("Eroare la încărcarea vehiculelor:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchVehicles();
+        fetchFirstPage();
     }, []);
+
+    // Funcție pentru a încărca paginile următoare.
+    const loadMoreVehicles = async () => {
+        if (!hasMore || isLoadingMore) return; // Previne încărcări multiple simultane.
+
+        setIsLoadingMore(true);
+        try {
+            // Trimite cursorul `lastVisible` pentru a prelua următorul set de date.
+            const { vehicles: newVehicles, lastVisible: newLastVisible } = await adminDataService.getVehicles(PAGE_SIZE, lastVisible);
+            // Adaugă noile vehicule la lista existentă.
+            setAllVehicles(prevVehicles => [...prevVehicles, ...newVehicles]);
+            setLastVisible(newLastVisible);
+            setHasMore(newVehicles.length === PAGE_SIZE);
+        } catch (error) {
+            console.error("Eroare la încărcarea următorului set de vehicule:", error);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
 
     // Generează dinamic listele de opțiuni pentru filtre, fără duplicate
     const allBrands = useMemo(() => Array.from(new Set(allVehicles.map(v => v.brand))).sort(), [allVehicles]);
@@ -99,7 +136,7 @@ const VehiclesPage: React.FC = () => {
         );
     };
 
-    // Logica de filtrare și sortare a fost extinsă pentru a include noile filtre
+    // Logica de filtrare și sortare client-side. Aceasta se aplică pe lista de vehicule încărcate până în prezent.
     const filteredAndSortedVehicles = useMemo(() => {
         let result = [...allVehicles];
 
@@ -236,10 +273,7 @@ const VehiclesPage: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Container animat pentru dotări.
-                        Folosește tranziții CSS pentru 'max-height' și 'opacity' pentru a crea
-                        un efect fluid de afișare/ascundere. 'overflow-hidden' este esențial
-                        pentru ca 'max-height' să funcționeze corect. */}
+                    {/* Container animat pentru dotări. */}
                     <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showFeatures ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                         <div className="border-t border-border dark:border-gray-700 pt-4">
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -259,21 +293,39 @@ const VehiclesPage: React.FC = () => {
                 {isLoading ? (
                      <div className="text-center py-16">Se încarcă vehiculele...</div>
                 ) : filteredAndSortedVehicles.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredAndSortedVehicles.map(vehicle => (
-                            <VehicleCard 
-                                key={vehicle.id} 
-                                vehicle={vehicle} 
-                                onQuoteClick={() => onQuoteClick(vehicle.model)}
-                                onCompareToggle={handleToggleCompare}
-                                isInCompare={comparisonList.some(v => v.id === vehicle.id)}
-                                onViewDetails={onViewDetails}
-                                onStockAlertClick={onStockAlertClick}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {filteredAndSortedVehicles.map(vehicle => (
+                                <VehicleCard 
+                                    key={vehicle.id} 
+                                    vehicle={vehicle} 
+                                    onQuoteClick={() => onQuoteClick(vehicle.model)}
+                                    onCompareToggle={handleToggleCompare}
+                                    isInCompare={comparisonList.some(v => v.id === vehicle.id)}
+                                    onViewDetails={onViewDetails}
+                                    onStockAlertClick={onStockAlertClick}
+                                />
+                            ))}
+                        </div>
+                        {hasMore && (
+                            <div className="text-center mt-12">
+                                <button
+                                    onClick={loadMoreVehicles}
+                                    disabled={isLoadingMore}
+                                    className="bg-primary text-white font-semibold px-8 py-3 rounded-btn hover:bg-primary-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                >
+                                    {isLoadingMore ? 'Se încarcă...' : 'Încarcă mai multe'}
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
-                    <div className="text-center py-16 text-muted">Niciun vehicul nu corespunde filtrelor selectate.</div>
+                    <div className="text-center py-16 text-muted">
+                        {allVehicles.length > 0
+                            ? 'Niciun vehicul nu corespunde filtrelor selectate.'
+                            : 'Nu există vehicule disponibile momentan.'
+                        }
+                    </div>
                 )}
 
                 <p className="text-center text-xs text-muted dark:text-gray-500 mt-12 max-w-3xl mx-auto">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { QuoteRequest, RequestStatus, Vehicle } from '../../types';
@@ -15,10 +14,12 @@ const RequestManagementPage: React.FC = () => {
             // Încarcă atât solicitările, cât și vehiculele, pentru a avea datele complete
             const [reqs, vecs] = await Promise.all([
                 adminDataService.getRequests(),
-                adminDataService.getVehicles()
+                // FIX: The getVehicles function requires a limit and returns a paginated response.
+                adminDataService.getVehicles(999)
             ]);
             setRequests(reqs);
-            setVehicles(vecs);
+            // FIX: Access the 'vehicles' property from the response and update the state.
+            setVehicles(vecs.vehicles);
         } catch (error) {
             console.error("Eroare la încărcarea datelor:", error);
         } finally {

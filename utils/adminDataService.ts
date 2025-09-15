@@ -7,6 +7,12 @@ import type { Vehicle, QuoteRequest, User, FAQItem, AuditLogEntry, Client, Reque
  * pentru a gestiona toate datele aplicației.
  */
 
+// Interfața pentru răspunsul paginat al vehiculelor
+export interface PaginatedVehiclesResponse {
+    vehicles: Vehicle[];
+    lastVisible: firebase.firestore.DocumentSnapshot | null;
+}
+
 // Funcție ajutătoare pentru a transforma un snapshot Firestore într-un array de obiecte, adăugând și ID-ul documentului.
 const mapSnapshotToData = <T extends {}>(snapshot: firebase.firestore.QuerySnapshot): (T & { id: string })[] => {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
@@ -28,9 +34,37 @@ async function logAction(action: string, details: string): Promise<void> {
 
 export const adminDataService = {
     // --- Vehicule ---
-    async getVehicles(): Promise<Vehicle[]> {
-        const snapshot = await db.collection('vehicles').get();
-        return mapSnapshotToData<Vehicle>(snapshot);
+    /**
+     * Obține o listă paginată de vehicule din Firestore.
+     * @param limitNum Numărul de vehicule de returnat pe pagină.
+     * @param startAfterDoc Cursorul (snapshot-ul ultimului document de pe pagina anterioară) pentru a începe căutarea.
+     * @returns Un obiect conținând lista de vehicule și cursorul pentru pagina următoare.
+     */
+    async getVehicles(limitNum: number, startAfterDoc?: firebase.firestore.DocumentSnapshot): Promise<PaginatedVehiclesResponse> {
+        // Construiește interogarea, pornind de la referința la colecție.
+        let query: firebase.firestore.Query = db.collection('vehicles');
+        
+        // Adaugă o sortare implicită. Este obligatorie pentru a putea folosi cursoare (`startAfter`).
+        // Am ales 'popularity' descrescător, conform sortării implicite din pagină.
+        query = query.orderBy('popularity', 'desc');
+
+        // Dacă este furnizat un cursor, interogarea va începe după acel document.
+        if (startAfterDoc) {
+            query = query.startAfter(startAfterDoc);
+        }
+
+        // Aplică limita pentru a prelua un număr specific de documente.
+        query = query.limit(limitNum);
+        
+        const snapshot = await query.get();
+        
+        // Extrage ultimul document vizibil din snapshot. Acesta va fi cursorul pentru pagina următoare.
+        const lastVisible = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+
+        // Mapează snapshot-ul la un array de obiecte `Vehicle`.
+        const vehicles = mapSnapshotToData<Vehicle>(snapshot);
+
+        return { vehicles, lastVisible };
     },
 
     async updateVehicle(updatedVehicle: Vehicle): Promise<void> {
@@ -80,6 +114,23 @@ export const adminDataService = {
         await db.collection('requests').doc(requestId).update({ status });
         await logAction('update_request_status', `Statusul solicitării ${requestId} a fost schimbat în "${status}"`);
     },
+    
+    // --- Trimiteri Formulare Publice (Contact, Newsletter, Recomandare) ---
+    /**
+     * Adaugă o nouă intrare în colecția `submissions` din Firestore.
+     * Această funcție centralizează logica pentru toate formularele publice.
+     * @param data - Obiectul cu datele din formular.
+     * @param type - Tipul formularului ('contact', 'referral', 'newsletter') pentru a le diferenția în baza de date.
+     */
+    async addSubmission(data: object, type: 'contact' | 'referral' | 'newsletter'): Promise<void> {
+        await db.collection('submissions').add({
+            ...data,
+            type, // Adaugă tipul pentru filtrare ulterioară în panoul de admin
+            submittedAt: new Date().toISOString(),
+            status: 'new', // Un status default pentru a putea urmări procesarea
+        });
+    },
+
 
     // --- Clienți (derivați din solicitări) ---
     async getClients(): Promise<Client[]> {

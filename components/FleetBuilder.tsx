@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import type { FleetItem, Vehicle } from '../types';
 import { adminDataService } from '../utils/adminDataService';
@@ -22,8 +21,10 @@ const FleetBuilder: React.FC<FleetBuilderProps> = ({ currentFleet, onFleetChange
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
-                const vehiclesFromDb = await adminDataService.getVehicles();
-                setAllVehicles(vehiclesFromDb);
+                // FIX: The getVehicles function requires a limit and returns a paginated response.
+                const vehiclesFromDb = await adminDataService.getVehicles(999);
+                // FIX: Access the 'vehicles' property from the response and update the state.
+                setAllVehicles(vehiclesFromDb.vehicles);
             } catch (error) {
                 console.error("Eroare la încărcarea vehiculelor pentru FleetBuilder:", error);
             } finally {

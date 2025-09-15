@@ -68,13 +68,15 @@ const HomePage: React.FC = () => {
         // Funcție pentru a încărca datele care nu necesită actualizare în timp real
         const fetchStaticData = async () => {
             try {
-                const [vehicles, testimonials, partnersData] = await Promise.all([
-                    adminDataService.getVehicles(),
+                const [vehiclesResponse, testimonials, partnersData] = await Promise.all([
+                    // FIX: The getVehicles function requires a limit and returns a paginated response.
+                    adminDataService.getVehicles(10),
                     adminDataService.getTestimonials(),
                     adminDataService.getPartners()
                 ]);
                 
-                setVehiclesForHomepage(vehicles.slice(0, 3));
+                // FIX: Access the 'vehicles' property of the paginated response.
+                setVehiclesForHomepage(vehiclesResponse.vehicles.slice(0, 3));
                 setTestimonialsData(testimonials);
                 setPartners(partnersData);
             } catch (error) {

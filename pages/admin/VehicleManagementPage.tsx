@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminDataService } from '../../utils/adminDataService';
 import type { Vehicle } from '../../types';
@@ -17,8 +16,10 @@ const VehicleManagementPage: React.FC = () => {
     const loadVehicles = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await adminDataService.getVehicles();
-            setVehicles(data);
+            // FIX: The getVehicles function requires a limit and returns a paginated response.
+            const data = await adminDataService.getVehicles(999);
+            // FIX: Access the 'vehicles' property from the response and update the state.
+            setVehicles(data.vehicles);
         } catch (error) {
             console.error("Eroare la încărcarea vehiculelor:", error);
             // Aici se poate afișa o notificare de eroare
