@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
         <div className="flex items-center justify-center min-h-screen bg-bg-admin-alt">
             <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-lg shadow-soft">
                 <div className="text-center flex flex-col items-center">
-                    <Logo className="h-10 w-auto" />
+                    <Logo className="h-40 w-auto" />
                     <h1 className="mt-4 text-2xl font-bold text-text-main">Autentificare Admin</h1>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
