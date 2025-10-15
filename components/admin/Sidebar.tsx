@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
         
             <aside className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-border z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex-shrink-0`}>
                 <div className="p-6">
-                    <Logo className="h-40 w-auto" />
+                    <Logo className="h-16 w-auto" />
                 </div>
                 <nav className="mt-6 px-4">
                     <ul>
