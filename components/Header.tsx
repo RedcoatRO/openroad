@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ onQuoteClick, onFavoritesClick }) => {
                 <div className="flex justify-between items-center">
                     <NavLink to="/" aria-label="Open Road Leasing Homepage">
                         {/* Am înlocuit logica complexă cu noua componentă Logo */}
-                        <Logo className="h-60 w-auto" />
+                        <Logo className="h-8 w-auto" />
                     </NavLink>
                     
                     <nav className="hidden lg:flex items-center space-x-6">
