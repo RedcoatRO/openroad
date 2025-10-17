@@ -128,7 +128,7 @@ const ContactPage: React.FC = () => {
                                <div>
                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Email</h3>
                                    <p className="text-muted dark:text-gray-400">Pentru întrebări generale sau oferte.</p>
-                                   <a href="mailto:office@openroadleasing.com" className="text-primary font-semibold hover:underline">office@openroadleasing.com</a>
+                                   <a href="mailto:office@openroad.ro" className="text-primary font-semibold hover:underline">office@openroadleasing.com</a>
                                </div>
                            </div>
                            <div className="flex items-start">
@@ -136,14 +136,14 @@ const ContactPage: React.FC = () => {
                                <div>
                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Telefon</h3>
                                    <p className="text-muted dark:text-gray-400">Contactează-ne direct pentru o discuție rapidă.</p>
-                                   <a href="tel:+40744000000" className="text-primary font-semibold hover:underline">+40 744 000 000</a>
+                                   <a href="tel:+40792313921" className="text-primary font-semibold hover:underline">+40 744 000 000</a>
                                </div>
                            </div>
                            <div className="flex items-start">
                                 <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded-full mr-4"><MapPinIcon className="w-6 h-6 text-primary"/></div>
                                <div>
                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Sediu</h3>
-                                   <p className="text-muted dark:text-gray-400">Bd. Exemplu 123, Etaj 4, București, România</p>
+                                   <p className="text-muted dark:text-gray-400">Str. Copilului 6-12, Sc. E, Sector 1 , București, România</p>
                                </div>
                            </div>
                         </div>

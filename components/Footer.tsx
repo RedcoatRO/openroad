@@ -62,15 +62,15 @@ const Footer: React.FC = () => {
                         <ul className="space-y-3 text-sm">
                             <li className="flex items-start">
                                 <MailIcon className="w-4 h-4 mr-3 mt-1 text-primary flex-shrink-0" />
-                                <a href="mailto:office@openroadleasing.com" className="hover:text-primary transition-colors">office@openroadleasing.com</a>
+                                <a href="mailto:office@openroad.ro" className="hover:text-primary transition-colors">office@openroadleasing.com</a>
                             </li>
                             <li className="flex items-start">
                                 <PhoneIcon className="w-4 h-4 mr-3 mt-1 text-primary flex-shrink-0" />
-                                <a href="tel:+40744000000" className="hover:text-primary transition-colors">+40 744 000 000</a>
+                                <a href="tel:+40792313921" className="hover:text-primary transition-colors">+40 744 000 000</a>
                             </li>
                             <li className="flex items-start">
                                 <MapPinIcon className="w-4 h-4 mr-3 mt-1 text-primary flex-shrink-0" />
-                                <span>Bd. Exemplu 123, București</span>
+                                <span>Str. Copilului 6-12, Sc. E, Sector 1 , București, România</span>
                             </li>
                         </ul>
                     </div>

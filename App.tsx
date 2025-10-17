@@ -78,7 +78,7 @@ const MainLayout: React.FC = () => {
         "logo": "https://www.openroadleasing.com/logo.png",
         "contactPoint": {
             "@type": "ContactPoint",
-            "telephone": "+40-744-000-000",
+            "telephone": "+40-792-313-921",
             "contactType": "customer service"
         }
     };
