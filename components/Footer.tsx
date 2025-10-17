@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
                     {/* Col 1: Brand & Brief */}
                     <div className="space-y-4">
                         {/* Logoul este acum componenta statică, la fel ca în Header */}
-                        <Logo className="h-16 w-auto" />
+                        <Logo className="h-32 w-auto" />
                         <p className="text-sm">Partenerul tău pentru mobilitate predictibilă și eficientă.</p>
                     </div>
 
